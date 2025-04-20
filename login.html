@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #222222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .login-logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1877f2;
+            margin-bottom: 10px;
+        }
+
+        .login-title {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #1877f2;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        .login-button {
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .login-button:hover {
+            background-color: #166fe5;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        .next-button {
+            background-color: #4BB543;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .next-button:hover {
+            background-color: #3d9636;
+        }
+
+        .error-message {
+            color: #e41e3f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success-container {
+            display: none;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 50px;
+            color: #4BB543;
+            margin-bottom: 15px;
+        }
+
+        .success-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .logout-button {
+            background-color: #f0f2f5;
+            color: #1877f2;
+            border: 1px solid #1877f2;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-button:hover {
+            background-color: #e4e6eb;
+        }
+
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginForm">
+        <div class="login-logo">Zen Secure</div>
+        <h2 class="login-title">Please log in to continue</h2>
+        
+        <form id="authForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                <p class="error-message" id="passwordError">Incorrect password. Please try again.</p>
+            </div>
+            
+            <button type="submit" class="login-button">Login</button>
+        </form>
+    </div>
+    
+    <div class="login-container success-container" id="successMessage">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Login Successful!</h2>
+        <p class="success-message">Welcome to your secure dashboard.</p>
+        
+        <div class="button-group">
+            <button class="logout-button" id="logoutButton">Logout</button>
+            <button class="next-button" id="nextButton">Next</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const authForm = document.getElementById('authForm');
+            const loginForm = document.getElementById('loginForm');
+            const successMessage = document.getElementById('successMessage');
+            const passwordInput = document.getElementById('password');
+            const passwordError = document.getElementById('passwordError');
+            const logoutButton = document.getElementById('logoutButton');
+            const nextButton = document.getElementById('nextButton');
+            
+            // Correct password
+            const correctPassword = "1234";
+            
+            // Check if user is already logged in
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                showSuccessMessage();
+            }
+            
+            // Handle form submission
+            authForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const password = passwordInput.value;
+                
+                if (password === correctPassword) {
+                    // Correct password
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    showSuccessMessage();
+                    passwordError.style.display = 'none';
+                } else {
+                    // Incorrect password
+                    passwordError.style.display = 'block';
+                    passwordInput.value = '';
+                    loginForm.classList.add('shake');
+                    
+                    // Remove shake animation after it completes
+                    setTimeout(() => {
+                        loginForm.classList.remove('shake');
+                    }, 500);
+                }
+            });
+            
+            // Handle logout
+            logoutButton.addEventListener('click', function() {
+                sessionStorage.removeItem('isLoggedIn');
+                showLoginForm();
+            });
+            
+            // Handle next button - redirect to homepage
+            nextButton.addEventListener('click', function() {
+                // Replace 'homepage.html' with the actual path to your homepage
+                window.location.href = 'main.html';
+            });
+            
+            function showSuccessMessage() {
+                loginForm.style.display = 'none';
+                successMessage.style.display = 'block';
+            }
+            
+            function showLoginForm() {
+                successMessage.style.display = 'none';
+                loginForm.style.display = 'block';
+                passwordInput.value = '';
+                document.getElementById('username').value = '';
+            }
+        });
+    </script>
+</body>
+</html>
