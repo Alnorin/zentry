@@ -10,6 +10,7 @@ updated: 2026-11-21
 - `P` – Pages list
 - `N` – Log something (`⌘↵` saves)
 - `T` – Time travel
+- `?` – shortcuts sheet
 - `Esc` – close / back to the galaxy
 
 ## Galaxy

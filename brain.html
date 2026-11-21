@@ -145,6 +145,24 @@ textarea.edit{width:100%;min-height:55vh;background:rgba(255,255,255,.02);border
 #toast{position:fixed;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translate(-50%,-8px);opacity:0;z-index:40;padding:7px 13px;border-radius:999px;font-size:12px;background:rgba(20,20,24,.95);border:1px solid var(--line2);transition:.25s;pointer-events:none}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #install{display:none}
+@media (prefers-reduced-motion:no-preference){
+  #home.open .box{animation:rise .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+  #home.open .chart i{transform-origin:bottom;animation:growy .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(200ms + var(--d,0) * 18ms)}
+  #home.open .hb .t i,#home.open .spark i{animation:growx .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:.25s;transform-origin:left}
+  #home.open .spark i{animation-name:growy;transform-origin:bottom}
+  #hello:not(.hide) > *{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+  #hello > :nth-child(2){animation-delay:.12s} #hello > :nth-child(3){animation-delay:.2s} #hello > :nth-child(4){animation-delay:.28s} #hello > :nth-child(5){animation-delay:.36s}
+  .answer{animation:rise .4s cubic-bezier(.2,.8,.2,1) both}
+}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes growy{from{transform:scaleY(0)}to{transform:none}}
+@keyframes growx{from{transform:scaleX(0)}to{transform:none}}
+#help{position:fixed;left:50%;top:50%;width:min(420px,calc(100% - 32px));z-index:32;transform:translate(-50%,-48%);opacity:0;pointer-events:none;transition:.3s cubic-bezier(.2,.8,.2,1)}
+#help.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+#help dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;padding:0 18px 18px;font-size:12.5px}
+#help dt{color:#fff;white-space:nowrap}
+#help dt kbd{font:inherit;font-size:11px;padding:1px 6px;border:1px solid var(--line2);border-radius:5px;margin-right:3px}
+#help dd{color:var(--muted)}
 #dock .plus{width:34px;background:#fff;color:#050506}
 #dock .plus:hover{background:#e9e9ee;color:#050506}
 #dock .sep{width:1px;background:var(--line2);margin:5px 3px}
@@ -229,6 +247,7 @@ input[type=date]{height:30px;background:rgba(255,255,255,.03);border:1px solid v
   <button id="zreset" title="Reset view (0)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8a4.5 4.5 0 1 0 1.4-3.3M3.5 2.5v2.6h2.6"/></svg></button>
   <button id="pause" title="Pause motion (Space)"></button>
   <button id="timeBtn" title="Time travel (T)" aria-label="Time travel"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg></button>
+  <button id="helpBtn" title="Shortcuts (?)" aria-label="Shortcuts" style="font-size:12px;font-weight:600">?</button>
   <button id="full" title="Fullscreen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3"/></svg></button>
   <button id="install" title="Install as app"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2.5v8M4.8 7.5 8 10.7l3.2-3.2M3 13.5h10"/></svg></button>
 </div>
@@ -250,6 +269,21 @@ input[type=date]{height:30px;background:rgba(255,255,255,.03);border:1px solid v
 </section>
 <div id="tip"></div>
 <div id="scrim"></div>
+<section id="help" class="sheet" role="dialog" aria-label="Shortcuts">
+  <div class="hd"><h2>Moving around</h2><button class="x" id="helpClose">✕</button></div>
+  <dl>
+    <dt>Drag</dt><dd>Rotate the galaxy (it keeps spinning a little)</dd>
+    <dt>Two fingers · <kbd>⇧</kbd> drag</dt><dd>Pan</dd>
+    <dt>Pinch · scroll</dt><dd>Zoom</dd>
+    <dt>Tap a star</dt><dd>Open the page; its sections fan out around it</dd>
+    <dt>Tap a group name</dt><dd>Fly there and dim the rest</dd>
+    <dt>Tap the black hole</dt><dd>Dive into Home</dd>
+    <dt><kbd>N</kbd></dt><dd>Log something</dd>
+    <dt><kbd>⌘</kbd><kbd>K</kbd> · <kbd>H</kbd></dt><dd>Search / Home</dd>
+    <dt><kbd>P</kbd> · <kbd>T</kbd></dt><dd>Pages / Time travel</dd>
+    <dt><kbd>Space</kbd> · <kbd>0</kbd></dt><dd>Pause motion / Reset view</dd>
+  </dl>
+</section>
 
 <section id="home" class="sheet" role="dialog" aria-label="Home">
   <div class="hd"><h2>Home</h2><span class="chip" id="today"></span><button class="x" data-close-home>✕</button></div>
@@ -376,6 +410,7 @@ function buildWorld() {
         const rr = rng(strHash(p.slug + j));
         const d = j === 0 ? 0 : 10 + rr() * 26, a = rr() * 6.2832;
         const o = { x: px + Math.cos(a) * d, y: py + Math.sin(a) * d, z: pz + (j ? (rr() - .5) * 44 : 0), page: p, idea, j, g, fresh: Math.max(0, 1 - age / 21), task: p.tasks.some(t => !t.done && t.due), tw: rr() * 6.28, intro: rr() };
+        if (j === 0) p._c = o;
         world.ideas.push(o); sx += o.x; sy += o.y; sz += o.z; k++;
       });
     });
@@ -391,8 +426,9 @@ function buildWorld() {
   world.dust = [];
   const N = Math.round(Math.min(7000, 3600 + (W * H) / 650));
   for (let i = 0; i < N; i++) {
-    const rad = 48 + Math.pow(r(), .7) * 560, a = r() * 6.2832;
-    world.dust.push({ r: rad, a, z: gauss(r) * (46 * (1 - rad / 700) + 10), s: r() < .06 ? 1.5 + r() : .4 + r() * .8, al: .12 + r() * .6 * (1 - rad / 700), w: .016 * Math.pow(120 / rad, .9), arm: 0 });
+    const rad = 48 + Math.pow(r(), .7) * 560, arm = r() < .62;
+    const a = arm ? (r() < .5 ? 0 : Math.PI) + Math.log(rad / 40) * 1.9 + gauss(r) * (.1 + rad / 3600) : r() * 6.2832;
+    world.dust.push({ r: rad, a, z: gauss(r) * (46 * (1 - rad / 700) + 10), s: r() < .06 ? 1.5 + r() : .4 + r() * .8, al: (arm ? .22 : .08) + r() * .6 * (1 - rad / 700), w: arm ? .012 : .016 * Math.pow(120 / rad, .9), arm: 0 });
   }
   world.groups.forEach(g => {
     const rr = rng(strHash(g.name + 'dust')), cnt = 220 + g.ideas * 26;
@@ -404,7 +440,7 @@ function buildWorld() {
   world.dust.forEach(d => d.bk = Math.min(7, Math.floor(d.al * 10)));
   world.buckets = Array.from({ length: 8 }, (_, i) => world.dust.filter(d => d.bk === i));
   const rd = rng(7);
-  world.disk = Array.from({ length: 2600 }, () => { const t = Math.pow(rd(), 1.8), rad = 1.22 + t * 4.2; return { r: rad, a: rd() * 6.2832, s: .5 + rd() * 1.1, b: (1 - t) * .9 + .1, v: 1 / Math.pow(rad, 1.5) }; });
+  world.disk = Array.from({ length: 2200 }, () => { const t = Math.pow(rd(), 1.8), rad = 1.22 + t * 4.2; return { r: rad, a: rd() * 6.2832, s: .5 + rd() * 1.1, b: (1 - t) * .9 + .1, v: 1 / Math.pow(rad, 1.5) }; });
   const rc = rng(99);
   world.comets = [0, 1, 2, 3, 4].map(i => ({ R: 560 + i * 95 + rc() * 40, a: rc() * 6.28, v: (.035 + rc() * .03) * (rc() < .5 ? -1 : 1), tail: .5 + rc() * .5, inc: (rc() - .5) * 1.4, node: rc() * 6.28 }));
 }
@@ -455,6 +491,7 @@ function proj(x, y, z) {
 const userName = () => store.get('name', '') || cfg.name || '';
 
 let last = performance.now(), fpsAcc = 0, fpsN = 0, T = 0;
+const bloom = { page: null, t: 0, target: 0 };
 let screenIdeas = [], labelBoxes = [], meteors = [], nextMeteor = 3000, groupPulse = null;
 const FONT = 'Inter, -apple-system, "Segoe UI", sans-serif';
 function frame(now) {
@@ -538,7 +575,20 @@ function frame(now) {
   const fp = (hover || selIdea) ? (hover || selIdea).page : null;
   const nb = fp ? new Set([fp.slug, ...fp.links, ...fp.backlinks]) : null;
   const seen = o => tt === null || o.page.created <= tt;
-  world.ideas.forEach(o => { o.p = proj(o.x, o.y, o.z); });
+  // bloom: the open page's sections fan out into a ring around it
+  const bp = selIdea ? selIdea.page : null;
+  if (bp !== bloom.page) { if (bloom.t < .05 || !bloom.page) { bloom.page = bp; bloom.t = 0; } else bloom.target = 0; }
+  bloom.target = bp && bp === bloom.page ? 1 : 0;
+  bloom.t += (bloom.target - bloom.t) * (reduced ? 1 : 1 - Math.pow(.004, dt / 1000));
+  if (bloom.t < .01 && bloom.target === 0) bloom.page = bp;
+  const bt = ease3(bloom.t);
+  world.ideas.forEach(o => {
+    if (bloom.page && o.page === bloom.page && o.j > 0 && bt > .001) {
+      const n = o.page.ideas.length - 1, ang = -Math.PI / 2 + (o.j - 1) / n * 6.2832, c = o.page._c, rad = 34 + n * 3;
+      const bx = c.x + Math.cos(ang) * rad, by = c.y + Math.sin(ang) * rad;
+      o.p = proj(o.x + (bx - o.x) * bt, o.y + (by - o.y) * bt, o.z + (c.z - o.z) * bt);
+    } else o.p = proj(o.x, o.y, o.z);
+  });
   ctx.lineWidth = 1;
   for (const [a, b, al0] of world.links) {
     if (!seen(a) || !seen(b) || !a.p || !b.p) continue;
@@ -601,7 +651,7 @@ function frame(now) {
   };
   drawDisk(false);
   for (let i = 0; i < 6; i++) {               // lensed ring: light from behind bent around the shadow
-    ctx.strokeStyle = `rgba(255,228,190,${.22 - i * .033})`; ctx.lineWidth = (1.4 + i * 2.2) * Math.max(.6, KK);
+    ctx.strokeStyle = `rgba(255,228,190,${.15 - i * .023})`; ctx.lineWidth = (1.4 + i * 2.2) * Math.max(.6, KK);
     ctx.beginPath(); ctx.ellipse(cx, cy, R * 1.28, R * 1.2, 0, 0, 6.2832); ctx.stroke();
   }
   const sw = R * 5.4, sh = R * (.15 + (tilt - .1) * .6);
@@ -614,6 +664,18 @@ function frame(now) {
   ctx.strokeStyle = 'rgba(255,240,220,.85)'; ctx.lineWidth = Math.max(1, 1.3 * KK);
   ctx.beginPath(); ctx.arc(cx, cy, R * 1.04, 0, 6.2832); ctx.stroke();
   drawDisk(true);
+  // gravitational lensing: the far side of the disk bent over the top, the near side under the bottom
+  {
+    const px = Math.max(.6, KK * .8);
+    for (const p of world.disk) {
+      const a = p.a + spin * p.v, ca = Math.cos(a), far = Math.sin(a) < 0;
+      const rho = R * (far ? 1.12 + (p.r - 1.22) * .17 : 1.06 + (p.r - 1.22) * .07);
+      const phi = Math.acos(Math.max(-1, Math.min(1, ca)));
+      const x = cx + Math.cos(phi) * rho, y = cy + (far ? -1 : 1) * Math.sin(phi) * rho * (far ? .98 : .9);
+      ctx.fillStyle = `rgba(255,${222 + 30 * p.b | 0},${180 + 60 * p.b | 0},${(far ? .75 : .3) * (.35 + p.b)})`;
+      ctx.fillRect(x, y, p.s * px, p.s * px);
+    }
+  }
   const tg = ctx.createLinearGradient(cx, cy - R * 1.4, cx, cy);
   tg.addColorStop(0, 'rgba(255,236,205,.55)'); tg.addColorStop(1, 'rgba(255,236,205,0)');
   ctx.strokeStyle = tg; ctx.lineWidth = Math.max(1.5, 3 * KK);
@@ -661,19 +723,21 @@ function frame(now) {
   });
 
   // titles when zoomed in
-  if (cam.zoom > 1.9) {
+  if (cam.zoom > 1.9 || (bloom.page && bt > .6)) {
     ctx.font = '10.5px ' + FONT; ctx.textAlign = 'left';
     const placed = [...labelBoxes.map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h }))];
-    const list = [...screenIdeas].sort((a, b) => (b.o === selIdea) - (a.o === selIdea) || a.o.j - b.o.j || b.f - a.f);
+    const isB = o => bloom.page && o.page === bloom.page;
+    const list = [...screenIdeas].sort((a, b) => (b.o === selIdea) - (a.o === selIdea) || isB(b.o) - isB(a.o) || a.o.j - b.o.j || b.f - a.f);
     for (const s of list) {
-      if (s.o.j !== 0 && cam.zoom < 3.2 && s.o !== selIdea && !(nb && s.o.page === fp)) continue;
+      const bloomed = bloom.page && s.o.page === bloom.page && bt > .6;
+      if (s.o.j !== 0 && cam.zoom < 3.2 && s.o !== selIdea && !bloomed && !(nb && s.o.page === fp)) continue;
       if (focus && s.o.g !== focus) continue;
       const t = s.o.j === 0 ? s.o.page.title : s.o.idea.title, w = ctx.measureText(t).width;
       const b = { x: s.x + 9, y: s.y - 7, w, h: 14 };
       if (placed.some(q => b.x < q.x + q.w + 8 && q.x < b.x + b.w + 8 && b.y < q.y + q.h && q.y < b.y + b.h)) continue;
       placed.push(b);
-      ctx.globalAlpha = Math.min(1, s.f);
-      ctx.fillStyle = s.o === selIdea ? '#fff' : s.o.j === 0 ? 'rgba(255,255,255,.78)' : 'rgba(190,190,200,.6)';
+      ctx.globalAlpha = Math.min(1, s.f) * (bloomed ? Math.min(1, (bt - .6) * 2.5) : 1);
+      ctx.fillStyle = s.o === selIdea ? '#fff' : bloomed ? 'rgba(235,235,242,.85)' : s.o.j === 0 ? 'rgba(255,255,255,.78)' : 'rgba(190,190,200,.6)';
       ctx.fillText(t, b.x, s.y + 3.5);
     }
   }
@@ -725,14 +789,16 @@ cv.addEventListener('pointermove', e => {
   if (h) { tip.innerHTML = `${esc(h.j === 0 ? h.page.title : h.idea.title)}<div class="s">${h.j === 0 ? esc(h.g.name) + ' · ' + h.page.ideas.length + ' ideas' : 'Page: ' + esc(h.page.title)}</div>`; tip.style.left = Math.min(W - 270, e.clientX + 14) + 'px'; tip.style.top = e.clientY + 12 + 'px'; tip.style.opacity = 1; }
   else tip.style.opacity = 0;
 });
+const buzz = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
 const pUp = e => {
   pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
   if (!down || pts.size) return;
   dragging = false;
   if (moved < 5) {
     const h = hitIdea(e.clientX, e.clientY), l = !h && hitLabel(e.clientX, e.clientY);
-    if (h) openPage(h.page, h.j);
-    else if (l) openGroup(l.g);
+    if (h && bloom.page === h.page && h.j > 0) { const el = side.querySelector('#idea-' + h.j); if (el) { el.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' }); el.classList.remove('hl'); void el.offsetWidth; el.classList.add('hl'); } buzz(); }
+    else if (h) { openPage(h.page, h.j); buzz(); }
+    else if (l) { openGroup(l.g); buzz(); }
     else if (hitHole(e.clientX, e.clientY)) openHome();
     else if (focus || selIdea || $('#side').classList.contains('open')) closeSide();
   }
@@ -845,7 +911,7 @@ function openPage(p, j = 0, editing = false) {
   if ($('#bDl')) $('#bDl').onclick = () => download(p.slug + '.md', rawOf(p));
   if ($('#bRevert')) $('#bRevert').onclick = () => { saveOverride(p.slug, null); reload(p.slug); toast(p.local ? 'Deleted' : 'Reverted to the repo version'); };
   if ($('#bDelCap')) $('#bDelCap').onclick = () => { removeCapture(p.capture.id); closeSide(); toast('Removed from Inbox'); };
-  if (ideaObj) flyTo(ideaObj.x, ideaObj.y, ideaObj.z, j > 0 ? 3.4 : 2.5);
+  { const c = p._c || ideaObj; if (c) flyTo(c.x, c.y, c.z, p.ideas.length > 1 ? 3 : 2.5); }
 }
 function saveOverride(slug, raw) {
   if (raw == null) delete overrides[slug]; else overrides[slug] = raw;
@@ -948,6 +1014,13 @@ function renderHome(q = '') {
   </div>`;
   bindLinks($('#homeBody'));
   $('#homeBody').querySelectorAll('[data-ask]').forEach(b => b.onclick = () => ask(b.dataset.ask));
+  $('#homeBody').querySelectorAll('.box').forEach((b, i) => b.style.setProperty('--i', i));
+  $('#homeBody').querySelectorAll('.chart i').forEach((b, i) => b.style.setProperty('--d', i));
+  if (!reduced) $('#homeBody').querySelectorAll('.kpi .n').forEach(el => {
+    const to = +el.textContent, t0 = performance.now();
+    const step = now => { const k = ease3((now - t0) / 900); el.textContent = Math.round(to * k); if (k < 1) requestAnimationFrame(step); };
+    el.textContent = '0'; requestAnimationFrame(step);
+  });
 }
 function renderSearch(q) {
   const words = q.toLowerCase().split(/\s+/).filter(Boolean), hits = [];
@@ -1067,7 +1140,10 @@ $('#ttPlay').onclick = () => {
   ttAnim = requestAnimationFrame(step);
 };
 document.querySelectorAll('[data-close-home]').forEach(b => b.onclick = () => closeHome());
-$('#scrim').onclick = () => { if ($('#capSheet').classList.contains('open')) closeCapture(); else closeHome(); };
+$('#scrim').onclick = () => { if ($('#help').classList.contains('open')) toggleHelp(false); else if ($('#capSheet').classList.contains('open')) closeCapture(); else closeHome(); };
+function toggleHelp(on) { $('#help').classList.toggle('open', on); if (on) $('#scrim').classList.add('open'); else if (!homeOpen && !$('#capSheet').classList.contains('open')) $('#scrim').classList.remove('open'); }
+$('#helpBtn').onclick = () => toggleHelp(!$('#help').classList.contains('open'));
+$('#helpClose').onclick = () => toggleHelp(false);
 
 /* ================= chrome ================= */
 $('#homeBtn').onclick = () => homeOpen ? closeHome() : openHome();
@@ -1083,7 +1159,7 @@ if (cfg.title) $('#appTitle').textContent = cfg.title;
 addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openHome(); setTimeout(() => $('#q').focus(), reduced ? 0 : 420); return; }
-  if (e.key === 'Escape') { if (typing) document.activeElement.blur(); if ($('#capSheet').classList.contains('open')) closeCapture(); else if (homeOpen) closeHome(); else closeSide(); return; }
+  if (e.key === 'Escape') { if (typing) document.activeElement.blur(); if ($('#help').classList.contains('open')) toggleHelp(false); else if ($('#capSheet').classList.contains('open')) closeCapture(); else if (homeOpen) closeHome(); else closeSide(); return; }
   if (typing) return;
   if (e.key === ' ') { e.preventDefault(); setPaused(!paused); }
   else if (e.key.toLowerCase() === 'h') homeOpen ? closeHome() : openHome();
@@ -1091,6 +1167,7 @@ addEventListener('keydown', e => {
   else if (e.key === '0') $('#zreset').click();
   else if (e.key.toLowerCase() === 'n') { e.preventDefault(); openCapture(); }
   else if (e.key.toLowerCase() === 't') $('#timeBtn').click();
+  else if (e.key === '?') toggleHelp(!$('#help').classList.contains('open'));
   else if (e.key === '+' || e.key === '=') $('#zin').click();
   else if (e.key === '-') $('#zout').click();
 });
