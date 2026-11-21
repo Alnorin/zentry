@@ -8,6 +8,8 @@ updated: 2026-11-21
 - `⌘K` / `Ctrl K` – search every page
 - `H` – Home dashboard
 - `P` – Pages list
+- `N` – Log something (`⌘↵` saves)
+- `T` – Time travel
 - `Esc` – close / back to the galaxy
 
 ## Galaxy

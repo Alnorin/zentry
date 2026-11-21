@@ -1,0 +1,1045 @@
+<title>Second Brain</title>
+<meta name="description" content="Zentry Second Brain – galaxy of notes, inbox and Ask Claude">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#050506; --card:#0f0f12; --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.13);
+  --text:#ededf0; --muted:#8a8a93; --dim:#5a5a62;
+  --orange:#f08a3c; --green:#3ddc84; --blue:#3b82f6; --purple:#a855f7; --warm:#f2b27a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+canvas#sky{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.pill{height:30px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:rgba(16,16,19,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:12px;color:#d8d8de;transition:.2s}
+.pill:hover{background:rgba(34,34,40,.85);color:#fff}
+
+#brand{position:fixed;top:calc(14px + env(safe-area-inset-top));left:16px;z-index:5;user-select:none}
+#brand b{font-size:12px;font-weight:600;display:block}
+#brand span{font-size:10.5px;color:var(--dim)}
+#homeBtn{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5}
+#pagesBtn{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:5}
+#dock{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:2px;padding:4px 6px;border-radius:999px;border:1px solid var(--line);background:rgba(16,16,19,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#dock button{width:30px;height:26px;border-radius:999px;color:var(--muted);display:grid;place-items:center}
+#dock button:hover{color:#fff;background:rgba(255,255,255,.06)}
+#dock svg{width:13px;height:13px}
+
+#hello{position:fixed;top:calc(64px + env(safe-area-inset-top));left:24px;width:290px;z-index:4;transition:opacity .4s}
+#hello.hide{opacity:0;pointer-events:none}
+#hello h1{font-size:23px;font-weight:600;letter-spacing:-.3px;cursor:default}
+#hello .since{color:var(--dim);font-size:10.5px;margin:3px 0 14px}
+#hello .note{color:#cfcfd6;line-height:1.55;font-size:13px;margin-bottom:20px}
+.eyebrow{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:500}
+.up{display:flex;gap:12px;padding:4px 0;cursor:pointer;font-size:12px;line-height:1.4}
+.up .d{color:var(--orange);min-width:58px;white-space:nowrap}
+.up .d.late{color:#ff5d5d}
+.up .t{color:#c8c8cf}
+.up:hover .t{color:#fff}
+
+#tip{position:fixed;z-index:8;pointer-events:none;padding:7px 10px;border-radius:8px;background:rgba(20,20,24,.92);border:1px solid var(--line2);font-size:11.5px;max-width:260px;opacity:0;transition:opacity .12s}
+#tip .s{color:var(--muted);font-size:10.5px;margin-top:2px}
+
+.sheet{background:rgba(13,13,16,.94);border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .35s}
+#scrim.open{opacity:1;pointer-events:auto}
+#home{position:fixed;left:50%;top:50%;width:min(860px,calc(100% - 32px));height:min(780px,calc(100% - 96px));z-index:21;display:flex;flex-direction:column;
+  transform:translate(-50%,-48%) scale(.97);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .35s}
+#home.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+.hd{display:flex;align-items:center;gap:10px;padding:18px 18px 12px}
+.hd h2{font-size:19px;font-weight:600}
+.chip{font-size:10.5px;color:var(--muted);padding:3px 8px;border-radius:999px;border:1px solid var(--line2)}
+.x{margin-left:auto;width:26px;height:26px;border-radius:50%;border:1px solid var(--line2);color:var(--muted);font-size:11px;flex:none}
+.x:hover{color:#fff}
+.search{margin:0 18px 14px;display:flex;align-items:center;gap:10px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:rgba(255,255,255,.02)}
+.search:focus-within{border-color:rgba(255,255,255,.3)}
+.search input{flex:1;background:none;border:0;outline:0;font-size:13px;min-width:0}
+.search input::placeholder{color:var(--dim)}
+.search svg{width:13px;height:13px;color:var(--muted);flex:none}
+.scroll{overflow:auto;padding:0 18px 18px;flex:1}
+.scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:8px}
+.grid{display:grid;gap:10px}
+.k4{grid-template-columns:repeat(4,1fr)}
+.k3{grid-template-columns:repeat(3,1fr)}
+.k2{grid-template-columns:repeat(2,1fr)}
+.box{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:13px 14px;position:relative;overflow:hidden}
+.kpi{min-height:92px;border-color:color-mix(in srgb,var(--c) 45%,transparent);background:linear-gradient(180deg,var(--card) 40%,color-mix(in srgb,var(--c) 7%,var(--card)))}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--c);opacity:.9}
+.kpi .n{font-size:22px;font-weight:600;letter-spacing:-.4px}
+.kpi .l{font-size:11.5px;color:#d0d0d6;margin-top:1px}
+.kpi .s{font-size:10px;color:var(--dim)}
+.kpi .b{position:absolute;top:12px;right:12px;font-size:9.5px;padding:2px 6px;border-radius:5px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.spark{position:absolute;right:12px;bottom:12px;display:flex;align-items:flex-end;gap:2px;height:22px}
+.spark i{width:9px;background:var(--c);opacity:.35;border-radius:1.5px}
+.spark i:last-child{opacity:1}
+.box h3{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+.box h3::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c,#fff)}
+.box .sub{font-size:10.5px;color:var(--dim);margin:2px 0 12px}
+.chart{display:flex;align-items:flex-end;gap:2px;height:150px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);padding-left:4px;position:relative}
+.chart i{flex:1;background:linear-gradient(180deg,#b27cff,#7c3aed);border-radius:2px 2px 0 0;min-height:0;opacity:.95}
+.chart i.z{background:none}
+.chart i:hover{filter:brightness(1.3)}
+.ax{display:flex;justify-content:space-between;font-size:9.5px;color:var(--dim);margin-top:5px;padding-left:4px}
+.yl{position:absolute;left:-22px;font-size:9px;color:var(--dim)}
+.hb{padding:6px 0;cursor:pointer}
+.hb .r{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px;color:#d8d8de;gap:8px}
+.hb .r span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .r span:last-child{color:var(--muted)}
+.hb .t{height:3px;border-radius:3px;background:rgba(255,255,255,.05)}
+.hb .t i{display:block;height:100%;border-radius:3px;background:var(--c)}
+.hb:hover .r span:first-child{color:#fff}
+.li{padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.li:last-child{border:0}
+.li .a{font-size:12px;color:#e4e4e8}
+.li .s{font-size:10.5px;color:var(--dim);margin-top:1px}
+.li:hover .a{color:#fff}
+.eyebrow.sm{font-size:9px;margin-bottom:4px}
+.empty{color:var(--dim);padding:10px 0}
+.res .li .a mark,.res .li .s mark{background:rgba(255,255,255,.16);color:#fff;border-radius:3px}
+
+#side{position:fixed;top:calc(54px + env(safe-area-inset-top));right:14px;bottom:calc(56px + env(safe-area-inset-bottom));width:400px;z-index:10;display:flex;flex-direction:column;
+  transform:translateX(calc(100% + 30px));transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+#side.open{transform:none}
+#side .hd h2{font-size:16px;line-height:1.3}
+#side .meta{font-size:10.5px;color:var(--dim);padding:0 18px 12px;margin-top:-6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.grp{margin:14px 0 4px;display:flex;justify-content:space-between;align-items:baseline}
+.grp b{font-size:11px;font-weight:600;letter-spacing:.3px}
+.grp span{font-size:10px;color:var(--dim)}
+.md{font-size:13px;line-height:1.65;color:#d6d6dc}
+.md h1,.md h2,.md h3{color:#fff;font-weight:600;line-height:1.3;margin:20px 0 6px;scroll-margin-top:12px}
+.md h2{font-size:14.5px}.md h3{font-size:13px}
+.md h2.hl{animation:hl 2s}
+@keyframes hl{0%{color:var(--warm)}100%{color:#fff}}
+.md p{margin:6px 0}
+.md ul{margin:6px 0 6px 18px}
+.md li{margin:2px 0}
+.md li.task{list-style:none;margin-left:-18px}
+.md li.task input{margin-right:7px;accent-color:#a855f7;vertical-align:-1px}
+.md li.task.done span{color:var(--dim);text-decoration:line-through}
+.md code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11.5px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px}
+.md pre{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;margin:8px 0}
+.md pre code{background:none;padding:0}
+.md a{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:2px;cursor:pointer}
+.md a.wl{text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.35)}
+.md a:hover{text-decoration-color:#fff;border-color:#fff}
+.md .due{color:var(--orange);font-size:11.5px}
+.md > :first-child{margin-top:0}
+.back{margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.tools{display:flex;gap:6px;flex-wrap:wrap;padding:0 18px 14px}
+.btn{height:28px;padding:0 11px;border-radius:8px;border:1px solid var(--line2);font-size:11.5px;color:#d8d8de;background:rgba(255,255,255,.02)}
+.btn:hover{color:#fff;border-color:rgba(255,255,255,.28)}
+textarea.edit{width:100%;min-height:55vh;background:rgba(255,255,255,.02);border:1px solid var(--line2);border-radius:10px;padding:12px;outline:0;resize:vertical;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;color:#ddd}
+
+#toast{position:fixed;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translate(-50%,-8px);opacity:0;z-index:40;padding:7px 13px;border-radius:999px;font-size:12px;background:rgba(20,20,24,.95);border:1px solid var(--line2);transition:.25s;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#install{display:none}
+#dock .plus{width:34px;background:#fff;color:#050506}
+#dock .plus:hover{background:#e9e9ee;color:#050506}
+#dock .sep{width:1px;background:var(--line2);margin:5px 3px}
+#dock button.on{color:#fff;background:rgba(255,255,255,.1)}
+#time{position:fixed;left:50%;bottom:calc(56px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;width:min(540px,calc(100% - 32px));display:none;align-items:center;gap:10px;padding:8px 10px 8px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(16,16,19,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#time.open{display:flex}
+#time input{flex:1;min-width:0;accent-color:#f2b27a}
+#time .lbl{font-size:11px;color:#d8d8de;min-width:112px;text-align:right;font-variant-numeric:tabular-nums}
+#capSheet{position:fixed;left:50%;top:42%;width:min(520px,calc(100% - 24px));z-index:31;transform:translate(-50%,-46%) scale(.98);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s;display:flex;flex-direction:column}
+#capSheet.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+#capSheet .body{padding:0 18px 18px;display:grid;gap:12px}
+.ta{position:relative}
+.ta textarea{width:100%;min-height:110px;resize:none;background:rgba(255,255,255,.025);border:1px solid var(--line2);border-radius:12px;padding:12px 48px 12px 14px;outline:0;font-size:15px;line-height:1.5}
+.ta textarea:focus{border-color:rgba(255,255,255,.32)}
+.ta textarea::placeholder{color:var(--dim)}
+.mic{position:absolute;right:10px;bottom:10px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;color:var(--muted);background:rgba(16,16,19,.9)}
+.mic svg{width:14px;height:14px}
+.mic.live{border-color:#ff5d5d;color:#ff5d5d;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(255,93,93,.15)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{height:28px;padding:0 11px;border-radius:999px;border:1px solid var(--line2);font-size:12px;color:var(--muted)}
+.chips button.on{color:#050506;background:#fff;border-color:#fff}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row label{font-size:11.5px;color:var(--muted)}
+input[type=date]{height:30px;background:rgba(255,255,255,.03);border:1px solid var(--line2);border-radius:8px;padding:0 8px;color-scheme:dark;font-size:12px}
+.btn.primary{background:#fff;color:#050506;border-color:#fff;font-weight:600;height:32px;padding:0 16px}
+.btn.primary:hover{background:#e9e9ee;color:#050506}
+.btn.primary:disabled{opacity:.4;cursor:default}
+.hint{font-size:11px;color:var(--dim);line-height:1.5}
+.askbtn{height:26px;padding:0 10px;border-radius:7px;background:#fff;color:#050506;font-size:11.5px;font-weight:600;flex:none}
+.prompts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.prompts button{height:28px;padding:0 11px;border-radius:999px;border:1px solid var(--line2);font-size:11.5px;color:#d8d8de;background:rgba(255,255,255,.02)}
+.prompts button:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.answer{border:1px solid rgba(242,178,122,.28);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:linear-gradient(180deg,rgba(242,178,122,.07),rgba(242,178,122,0) 70%),var(--card)}
+.answer .q{font-size:11px;color:var(--warm);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.answer .q span{flex:1}
+.answer .md{font-size:13px}
+.answer .think{color:var(--muted);font-size:12px}
+.name-in{font-size:22px;font-weight:600;background:none;border:0;border-bottom:1px solid var(--line2);outline:0;width:100%;padding:2px 0}
+.cap-item .a{display:flex;gap:8px;align-items:baseline}
+.cap-item .a span:first-child{flex:1;min-width:0}
+.badge{font-size:9.5px;padding:1px 6px;border-radius:5px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.md li.task input{cursor:pointer}
+
+@media (max-width:860px){ .k4{grid-template-columns:repeat(2,1fr)} .k3,.k2{grid-template-columns:1fr} }
+@media (max-width:700px){
+  #hello{left:16px;right:16px;width:auto;top:calc(52px + env(safe-area-inset-top))}
+  #hello h1{font-size:20px} #hello .note{display:none}
+  #brand span{display:none}
+  #home{width:100%;height:calc(100% - 54px - env(safe-area-inset-top));top:auto;bottom:0;left:0;transform:translateY(30px);border-radius:16px 16px 0 0}
+  #home.open{transform:none}
+  #side{left:8px;right:8px;width:auto;top:auto;height:70vh;bottom:8px;transform:translateY(calc(100% + 20px))}
+  #side.open{transform:none}
+  #capSheet{top:auto;bottom:0;left:0;width:100%;transform:translateY(40px);border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  #capSheet.open{transform:none}
+  #dock #full{display:none}
+  #dock button{width:36px;height:30px}
+  #dock .plus{width:42px}
+}
+</style>
+<canvas id="sky"></canvas>
+
+<div id="brand"><b id="appTitle">Second Brain</b><span id="sub">60 fps</span></div>
+<button class="pill" id="homeBtn">Home</button>
+<button class="pill" id="pagesBtn">Pages</button>
+
+<section id="hello">
+  <h1 id="greet" title="Click to set your name">Evening.</h1>
+  <div class="since" id="since"></div>
+  <p class="note" id="note"></p>
+  <div class="eyebrow">Coming up</div>
+  <div id="upcoming"></div>
+</section>
+
+<div id="dock">
+  <button id="addBtn" class="plus" title="Log something (N)" aria-label="Log something"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg></button>
+  <span class="sep"></span>
+  <button id="zout" title="Zoom out (−)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10"/></svg></button>
+  <button id="zin" title="Zoom in (+)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M8 3v10"/></svg></button>
+  <button id="zreset" title="Reset view (0)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 8a4.5 4.5 0 1 0 1.4-3.3M3.5 2.5v2.6h2.6"/></svg></button>
+  <button id="pause" title="Pause motion (Space)"></button>
+  <button id="timeBtn" title="Time travel (T)" aria-label="Time travel"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg></button>
+  <button id="full" title="Fullscreen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3"/></svg></button>
+</div>
+
+<div id="time" role="group" aria-label="Time travel">
+  <button class="btn" id="ttPlay" style="height:26px">Replay</button>
+  <input type="range" id="ttRange" min="0" max="1000" value="1000" aria-label="Show the brain as it was on">
+  <span class="lbl" id="ttLbl"></span>
+</div>
+<section id="capSheet" class="sheet" role="dialog" aria-label="Log something">
+  <div class="hd"><h2>Log it</h2><span class="chip" id="capWhere">Inbox</span><button class="x" id="capClose">✕</button></div>
+  <div class="body">
+    <div class="ta"><textarea id="capText" placeholder="What did you just do, decide or think of?"></textarea>
+      <button class="mic" id="micBtn" hidden title="Dictate" aria-label="Dictate"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="2" width="5" height="8" rx="2.5"/><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2"/></svg></button></div>
+    <div class="chips" id="capGroups"></div>
+    <div class="row"><label for="capDue">Deadline</label><input type="date" id="capDue"><span style="flex:1"></span><button class="btn primary" id="capSave" disabled>Save</button></div>
+    <div class="hint" id="capHint"></div>
+  </div>
+</section>
+<div id="tip"></div>
+<div id="scrim"></div>
+
+<section id="home" class="sheet" role="dialog" aria-label="Home">
+  <div class="hd"><h2>Home</h2><span class="chip" id="today"></span><button class="x" data-close-home>✕</button></div>
+  <label class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input id="q" placeholder="Search every page and conversation…" autocomplete="off"><button class="askbtn" id="askBtn" hidden>Ask Claude</button></label>
+  <div class="scroll"><div id="askOut"></div><div id="homeBody"></div></div>
+</section>
+
+<aside id="side" class="sheet"></aside>
+<div id="toast"></div>
+
+<script>
+/* generated by tools/build-brain.mjs – do not edit */
+window.BRAIN = {"builtAt":1795286966569,"config":{"name":"","title":"Second Brain"},"pages":[{"slug":"galaxy-layout","path":"brain/Decisions/galaxy-layout.md","title":"Galaxy layout rules","group":"Decisions","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Decision","text":"Each group owns a direction around the black hole. Every idea is a star in its group's cloud; recently updated pages sit closer to the centre, old ones drift outward."},{"title":"Why","text":"The reference demo was beautiful but the positions meant nothing. Here a glance answers \"what have I been working on lately?\" – see [[second-brain-app]]."},{"title":"Details","text":"- Brighter, bigger stars = ideas from pages updated recently.\n- Lines = `[[links]]` between pages.\n- Pulsing star = page with an open task."}],"links":["second-brain-app"],"tasks":[],"body":"## Decision\nEach group owns a direction around the black hole. Every idea is a star in its group's cloud; recently updated pages sit closer to the centre, old ones drift outward.\n\n## Why\nThe reference demo was beautiful but the positions meant nothing. Here a glance answers \"what have I been working on lately?\" – see [[second-brain-app]].\n\n## Details\n- Brighter, bigger stars = ideas from pages updated recently.\n- Lines = `[[links]]` between pages.\n- Pulsing star = page with an open task."},{"slug":"markdown-as-source-of-truth","path":"brain/Decisions/markdown-as-source-of-truth.md","title":"Markdown is the source of truth","group":"Decisions","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Decision","text":"Notes live as `.md` files in `brain/`. The app never owns the data – it only reads a compiled bundle (`brain/brain-data.js`)."},{"title":"Why","text":"- Claude can write, update and rewrite notes with normal file edits and commit them.\n- Readable on GitHub, diffable, portable to Obsidian or any editor.\n- Nothing is locked in a browser's localStorage (the problem with v1, see [[first-prototype-review]])."},{"title":"How","text":"Format rules: [[markdown-format]]. After editing run `node tools/build-brain.mjs`; the Pages workflow also runs it on deploy."}],"links":["first-prototype-review","markdown-format"],"tasks":[],"body":"## Decision\nNotes live as `.md` files in `brain/`. The app never owns the data – it only reads a compiled bundle (`brain/brain-data.js`).\n\n## Why\n- Claude can write, update and rewrite notes with normal file edits and commit them.\n- Readable on GitHub, diffable, portable to Obsidian or any editor.\n- Nothing is locked in a browser's localStorage (the problem with v1, see [[first-prototype-review]]).\n\n## How\nFormat rules: [[markdown-format]]. After editing run `node tools/build-brain.mjs`; the Pages workflow also runs it on deploy."},{"slug":"phone-artifact","path":"brain/Decisions/phone-artifact.md","title":"Phone version as a claude.ai artifact","group":"Decisions","tags":["second-brain","mobile"],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Decision","text":"Publish the same Second Brain as a private claude.ai artifact for the phone, next to the GitHub Pages PWA."},{"title":"Why","text":"- The artifact can keep data Claude can read: notes logged on the phone go to its database, and the next session files them into `brain/` as Markdown.\n- It can ask Claude directly (*Ask Claude*) and use dictation – things a static site cannot do without a backend.\n- One codebase: `tools/build-artifact.mjs` turns `brain.html` + the notes into `artifact/second-brain.html`."},{"title":"Limits","text":"- Notes in the artifact are a snapshot: after Claude changes `brain/`, the artifact must be republished.\n- No offline mode or install there; that is what the PWA is for ([[pwa-instead-of-electron]])."},{"title":"Workflow","text":"Each session: read the artifact's `captures` and `edits` collections, file new captures into the right pages, mark them `status: filed`, rebuild and republish. Details in `CLAUDE.md`. Related: [[second-brain-app]]."}],"links":["pwa-instead-of-electron","second-brain-app"],"tasks":[],"body":"## Decision\nPublish the same Second Brain as a private claude.ai artifact for the phone, next to the GitHub Pages PWA.\n\n## Why\n- The artifact can keep data Claude can read: notes logged on the phone go to its database, and the next session files them into `brain/` as Markdown.\n- It can ask Claude directly (*Ask Claude*) and use dictation – things a static site cannot do without a backend.\n- One codebase: `tools/build-artifact.mjs` turns `brain.html` + the notes into `artifact/second-brain.html`.\n\n## Limits\n- Notes in the artifact are a snapshot: after Claude changes `brain/`, the artifact must be republished.\n- No offline mode or install there; that is what the PWA is for ([[pwa-instead-of-electron]]).\n\n## Workflow\nEach session: read the artifact's `captures` and `edits` collections, file new captures into the right pages, mark them `status: filed`, rebuild and republish. Details in `CLAUDE.md`. Related: [[second-brain-app]]."},{"slug":"pwa-instead-of-electron","path":"brain/Decisions/pwa-instead-of-electron.md","title":"PWA instead of Electron","group":"Decisions","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Decision","text":"Ship the Second Brain as a Progressive Web App."},{"title":"Why","text":"- Installs from the browser on macOS, Windows, Android and iOS with its own icon and window.\n- Works offline through a service worker.\n- Zero extra tooling; Electron/Tauri would add hundreds of MB and a build pipeline for the same page."},{"title":"Install","text":"Chrome/Edge: install icon in the address bar. Safari (macOS): File → Add to Dock. iPhone: Share → Add to Home Screen."}],"links":[],"tasks":[],"body":"## Decision\nShip the Second Brain as a Progressive Web App.\n\n## Why\n- Installs from the browser on macOS, Windows, Android and iOS with its own icon and window.\n- Works offline through a service worker.\n- Zero extra tooling; Electron/Tauri would add hundreds of MB and a build pipeline for the same page.\n\n## Install\nChrome/Edge: install icon in the address bar. Safari (macOS): File → Add to Dock. iPhone: Share → Add to Home Screen."},{"slug":"static-no-framework","path":"brain/Decisions/static-no-framework.md","title":"Stay static, no framework","group":"Decisions","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Decision","text":"Keep Zentry as plain static files: HTML + CSS + vanilla JS, one small Node script for the notes."},{"title":"Why","text":"- The repo is already static and deployed by GitHub Pages ([[zentry]]).\n- No dependency installs, nothing to break, opens straight from disk.\n- Canvas 2D with additive blending is fast enough for ~6 000 particles at 60 fps."},{"title":"Revisit when","text":"Accounts, sync between devices or server-side AI are needed – then add a tiny backend, not a framework."}],"links":["zentry"],"tasks":[],"body":"## Decision\nKeep Zentry as plain static files: HTML + CSS + vanilla JS, one small Node script for the notes.\n\n## Why\n- The repo is already static and deployed by GitHub Pages ([[zentry]]).\n- No dependency installs, nothing to break, opens straight from disk.\n- Canvas 2D with additive blending is fast enough for ~6 000 particles at 60 fps.\n\n## Revisit when\nAccounts, sync between devices or server-side AI are needed – then add a tiny backend, not a framework."},{"slug":"ai-summaries","path":"brain/Ideas/ai-summaries.md","title":"AI summaries after every session","group":"Ideas","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Idea","text":"At the end of each working session Claude writes a Record page: what was asked, what was done, decisions, open questions. These feed *Newest conversation summaries* on Home."},{"title":"Weekly digest","text":"Every Sunday a generated page in Reviews summarises the week across all Records."},{"title":"Live answers","text":"In the phone artifact, *Ask Claude* on Home answers questions and writes summaries from the notes, with links to the pages it used – no backend needed. The GitHub Pages version has no AI. Related: [[weekly-review]], [[phone-artifact]]."}],"links":["weekly-review","phone-artifact"],"tasks":[],"body":"## Idea\nAt the end of each working session Claude writes a Record page: what was asked, what was done, decisions, open questions. These feed *Newest conversation summaries* on Home.\n\n## Weekly digest\nEvery Sunday a generated page in Reviews summarises the week across all Records.\n\n## Live answers\nIn the phone artifact, *Ask Claude* on Home answers questions and writes summaries from the notes, with links to the pages it used – no backend needed. The GitHub Pages version has no AI. Related: [[weekly-review]], [[phone-artifact]]."},{"slug":"focus-mode","path":"brain/Ideas/focus-mode.md","title":"Focus mode","group":"Ideas","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Idea","text":"Pick one group and dim the rest of the galaxy, so only the current project is lit."},{"title":"Status","text":"In v2 clicking a group label flies the camera there and dims everything else. See [[galaxy-layout]]."}],"links":["galaxy-layout"],"tasks":[],"body":"## Idea\nPick one group and dim the rest of the galaxy, so only the current project is lit.\n\n## Status\nIn v2 clicking a group label flies the camera there and dims everything else. See [[galaxy-layout]]."},{"slug":"voice-capture","path":"brain/Ideas/voice-capture.md","title":"Voice capture","group":"Ideas","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Idea","text":"Hold a button on the phone, say what you just did, it lands as a note in Inbox."},{"title":"Status","text":"Done in the phone artifact: the mic button in *Log it* uses claude.ai dictation (Chromium browsers and the desktop app; not the iOS/Android Claude app yet). The note lands in the Inbox and Claude files it. See [[phone-artifact]]."}],"links":["phone-artifact"],"tasks":[],"body":"## Idea\nHold a button on the phone, say what you just did, it lands as a note in Inbox.\n\n## Status\nDone in the phone artifact: the mic button in *Log it* uses claude.ai dictation (Chromium browsers and the desktop app; not the iOS/Android Claude app yet). The note lands in the Inbox and Claude files it. See [[phone-artifact]]."},{"slug":"weekly-review","path":"brain/Ideas/weekly-review.md","title":"Weekly review ritual","group":"Ideas","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Idea","text":"Fixed slot each week: open Home, read the summaries, close or reschedule tasks in *Coming up*, write one line about what matters next week."},{"title":"Format","text":"A page in Reviews named `YYYY-Www.md`. Links to the Records of that week. See [[ai-summaries]]."}],"links":["ai-summaries"],"tasks":[],"body":"## Idea\nFixed slot each week: open Home, read the summaries, close or reschedule tasks in *Coming up*, write one line about what matters next week.\n\n## Format\nA page in Reviews named `YYYY-Www.md`. Links to the Records of that week. See [[ai-summaries]]."},{"slug":"landing-page","path":"brain/Projects/landing-page.md","title":"Landing page","group":"Projects","tags":["zentry","landing"],"created":1745107200000,"updated":1795219200000,"ideas":[{"title":"What is there","text":"Hero \"Welcome to zentry.\" with the tagline, three feature cards (Fast Performance, Responsive Design, Enhanced Security) and a footer – all generic template text, including \"© 2025 YourBrand\"."},{"title":"Problems","text":"- Nav uses absolute links (`/login.html`) which break under the `/zentry/` GitHub Pages path; the hero button uses `/zentry/login.html`. Mixed and fragile.\n- Copy says nothing about what Zentry actually is.\n- Social icons are emoji placeholders pointing to `#`."},{"title":"Plan","text":"Make the galaxy from [[second-brain-app]] the hero: a live, slowly rotating preview with one line of copy and an \"Open the app\" button. Feature cards become: *Write it down*, *See it all*, *Get the summary*."}],"links":["second-brain-app"],"tasks":[],"body":"## What is there\nHero \"Welcome to zentry.\" with the tagline, three feature cards (Fast Performance, Responsive Design, Enhanced Security) and a footer – all generic template text, including \"© 2025 YourBrand\".\n\n## Problems\n- Nav uses absolute links (`/login.html`) which break under the `/zentry/` GitHub Pages path; the hero button uses `/zentry/login.html`. Mixed and fragile.\n- Copy says nothing about what Zentry actually is.\n- Social icons are emoji placeholders pointing to `#`.\n\n## Plan\nMake the galaxy from [[second-brain-app]] the hero: a live, slowly rotating preview with one line of copy and an \"Open the app\" button. Feature cards become: *Write it down*, *See it all*, *Get the summary*."},{"slug":"second-brain-app","path":"brain/Projects/second-brain-app.md","title":"Second Brain app","group":"Projects","tags":["zentry","second-brain","pwa"],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Concept","text":"Everything done in the project gets written down as Markdown notes. Claude writes and rewrites them after each piece of work; the app turns them into a living galaxy you can fly through. Inspired by a \"Second Brain\" desktop demo, but meant to be more useful: positions and brightness carry meaning. See [[galaxy-layout]]."},{"title":"Data model","text":"- **Page** = one `.md` file in `brain/<Group>/`.\n- **Group** = the folder (Projects, Decisions, Ideas, Records, Reference, Reviews).\n- **Idea** = one `##` section inside a page. Every idea is a star.\n- **Link** = a `[[wikilink]]` between pages. Links become constellation lines.\n- **Task** = `- [ ] text @YYYY-MM-DD`. Open tasks with a date show up in *Coming up*.\nFull rules in [[markdown-format]]."},{"title":"Visual","text":"Monochrome galaxy, black hole with an accretion disk at the centre (\"Home\"), dense star dust, smoky nebula, comets on long orbits. Home opens as a dashboard: pages, ideas, links, updates this week, charts, recent activity and the newest conversation summaries."},{"title":"App","text":"Two ways to open it, one codebase (`brain.html`):\n- **Installable PWA** on GitHub Pages – works offline, own icon in the Dock / home screen. See [[pwa-instead-of-electron]].\n- **Phone artifact on claude.ai** – built by `tools/build-artifact.mjs`. There the Inbox syncs to a database Claude can read, *Ask Claude* answers questions from the notes, and dictation works where the browser supports it. See [[phone-artifact]]."},{"title":"Features","text":"- Galaxy: groups as clouds, ideas as stars, links as lines; hovering a star lights up its linked pages.\n- Log it (`N` or the white **+**): quick note with group and deadline; lands in Inbox, Claude files it next session.\n- Time travel (`T`): scrub or replay how the brain grew.\n- Tasks tick off right in the reader; deadlines feed *Coming up*.\n- Home: KPIs, charts, Inbox, recent activity, conversation summaries, search, Ask Claude."},{"title":"Roadmap","text":"- [x] v1 prototype (colourful, capture bar) – rejected, see [[first-prototype-review]]\n- [x] v2: look of the reference video, Markdown as source of truth, PWA\n- [x] v3: capture + Inbox, Ask Claude, time travel, task ticking, phone artifact\n- [ ] AI summaries written automatically after each session @2026-11-30 → [[ai-summaries]]\n- [ ] Open a local folder of notes (Obsidian-style vault) and edit in place @2026-12-03\n- [x] Voice capture from the phone (dictation in the artifact, Chromium only) → [[voice-capture]]"}],"links":["galaxy-layout","markdown-format","pwa-instead-of-electron","phone-artifact","first-prototype-review","ai-summaries","voice-capture"],"tasks":[{"done":true,"text":"v1 prototype (colourful, capture bar) – rejected, see [[first-prototype-review]]","due":null},{"done":true,"text":"v2: look of the reference video, Markdown as source of truth, PWA","due":null},{"done":true,"text":"v3: capture + Inbox, Ask Claude, time travel, task ticking, phone artifact","due":null},{"done":false,"text":"AI summaries written automatically after each session","due":1796061600000},{"done":false,"text":"Open a local folder of notes (Obsidian-style vault) and edit in place","due":1796320800000},{"done":true,"text":"Voice capture from the phone (dictation in the artifact, Chromium only)","due":null}],"body":"## Concept\nEverything done in the project gets written down as Markdown notes. Claude writes and rewrites them after each piece of work; the app turns them into a living galaxy you can fly through. Inspired by a \"Second Brain\" desktop demo, but meant to be more useful: positions and brightness carry meaning. See [[galaxy-layout]].\n\n## Data model\n- **Page** = one `.md` file in `brain/<Group>/`.\n- **Group** = the folder (Projects, Decisions, Ideas, Records, Reference, Reviews).\n- **Idea** = one `##` section inside a page. Every idea is a star.\n- **Link** = a `[[wikilink]]` between pages. Links become constellation lines.\n- **Task** = `- [ ] text @YYYY-MM-DD`. Open tasks with a date show up in *Coming up*.\nFull rules in [[markdown-format]].\n\n## Visual\nMonochrome galaxy, black hole with an accretion disk at the centre (\"Home\"), dense star dust, smoky nebula, comets on long orbits. Home opens as a dashboard: pages, ideas, links, updates this week, charts, recent activity and the newest conversation summaries.\n\n## App\nTwo ways to open it, one codebase (`brain.html`):\n- **Installable PWA** on GitHub Pages – works offline, own icon in the Dock / home screen. See [[pwa-instead-of-electron]].\n- **Phone artifact on claude.ai** – built by `tools/build-artifact.mjs`. There the Inbox syncs to a database Claude can read, *Ask Claude* answers questions from the notes, and dictation works where the browser supports it. See [[phone-artifact]].\n\n## Features\n- Galaxy: groups as clouds, ideas as stars, links as lines; hovering a star lights up its linked pages.\n- Log it (`N` or the white **+**): quick note with group and deadline; lands in Inbox, Claude files it next session.\n- Time travel (`T`): scrub or replay how the brain grew.\n- Tasks tick off right in the reader; deadlines feed *Coming up*.\n- Home: KPIs, charts, Inbox, recent activity, conversation summaries, search, Ask Claude.\n\n## Roadmap\n- [x] v1 prototype (colourful, capture bar) – rejected, see [[first-prototype-review]]\n- [x] v2: look of the reference video, Markdown as source of truth, PWA\n- [x] v3: capture + Inbox, Ask Claude, time travel, task ticking, phone artifact\n- [ ] AI summaries written automatically after each session @2026-11-30 → [[ai-summaries]]\n- [ ] Open a local folder of notes (Obsidian-style vault) and edit in place @2026-12-03\n- [x] Voice capture from the phone (dictation in the artifact, Chromium only) → [[voice-capture]]"},{"slug":"zentry","path":"brain/Projects/zentry.md","title":"Zentry","group":"Projects","tags":["zentry","web"],"created":1745107200000,"updated":1795219200000,"ideas":[{"title":"Goal","text":"\"Your calm workspace in a chaotic world.\" A personal workspace site whose heart is the Second Brain: a place where everything that gets done is written down, summarised and easy to find again."},{"title":"Current state","text":"- `index.html` – landing page (template copy, needs real content) → [[landing-page]]\n- `login.html` / `logindev.html` – client-side password gate (see [[security-login-review]])\n- `main.html` – \"work in progress\" 404-style page\n- `devs.html` – dev status page\n- `brain.html` – the Second Brain app → [[second-brain-app]]"},{"title":"Stack","text":"Plain HTML, CSS and JavaScript. No framework, no build step for the site itself. Notes are Markdown files in `brain/`, compiled to `brain/brain-data.js` by `tools/build-brain.mjs`. See [[static-no-framework]]."},{"title":"Deploy","text":"GitHub Pages via `.github/workflows/static.yml`, triggered by pushes to the `Readme` branch. The site lives under the `/zentry/` sub-path, so links must be relative."},{"title":"Next steps","text":"- [ ] Merge the Second Brain branch into `Readme` so it goes live @2026-11-24\n- [ ] Replace template copy on the landing page @2026-11-28\n- [ ] Decide what the login should really protect @2026-12-05"}],"links":["landing-page","security-login-review","second-brain-app","static-no-framework"],"tasks":[{"done":false,"text":"Merge the Second Brain branch into `Readme` so it goes live","due":1795543200000},{"done":false,"text":"Replace template copy on the landing page","due":1795888800000},{"done":false,"text":"Decide what the login should really protect","due":1796493600000}],"body":"## Goal\n\"Your calm workspace in a chaotic world.\" A personal workspace site whose heart is the Second Brain: a place where everything that gets done is written down, summarised and easy to find again.\n\n## Current state\n- `index.html` – landing page (template copy, needs real content) → [[landing-page]]\n- `login.html` / `logindev.html` – client-side password gate (see [[security-login-review]])\n- `main.html` – \"work in progress\" 404-style page\n- `devs.html` – dev status page\n- `brain.html` – the Second Brain app → [[second-brain-app]]\n\n## Stack\nPlain HTML, CSS and JavaScript. No framework, no build step for the site itself. Notes are Markdown files in `brain/`, compiled to `brain/brain-data.js` by `tools/build-brain.mjs`. See [[static-no-framework]].\n\n## Deploy\nGitHub Pages via `.github/workflows/static.yml`, triggered by pushes to the `Readme` branch. The site lives under the `/zentry/` sub-path, so links must be relative.\n\n## Next steps\n- [ ] Merge the Second Brain branch into `Readme` so it goes live @2026-11-24\n- [ ] Replace template copy on the landing page @2026-11-28\n- [ ] Decide what the login should really protect @2026-12-05"},{"slug":"2026-11-21-second-brain-kickoff","path":"brain/Records/2026-11-21-second-brain-kickoff.md","title":"Second Brain kickoff","group":"Records","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Asked","text":"Shared a screen recording of a \"Second Brain\" app – a galaxy of notes around a black hole with a Home dashboard – and asked for something like it, only better: a second brain where everything done is written down and summarised, plus many other features."},{"title":"Done","text":"Built v1 `brain.html`: colourful galaxy (angle = area, distance = recency), quick capture bar with `#group`, `!`, `@date`, auto summaries for day/week/month, tasks, search, focus mode, JSON export. Data stored in the browser."},{"title":"Outcome","text":"Rejected – see [[first-prototype-review]] and the follow-up [[2026-11-21-v2-rewrite]]."}],"links":["first-prototype-review","2026-11-21-v2-rewrite"],"tasks":[],"body":"## Asked\nShared a screen recording of a \"Second Brain\" app – a galaxy of notes around a black hole with a Home dashboard – and asked for something like it, only better: a second brain where everything done is written down and summarised, plus many other features.\n\n## Done\nBuilt v1 `brain.html`: colourful galaxy (angle = area, distance = recency), quick capture bar with `#group`, `!`, `@date`, auto summaries for day/week/month, tasks, search, focus mode, JSON export. Data stored in the browser.\n\n## Outcome\nRejected – see [[first-prototype-review]] and the follow-up [[2026-11-21-v2-rewrite]]."},{"slug":"2026-11-21-v2-rewrite","path":"brain/Records/2026-11-21-v2-rewrite.md","title":"v2 rewrite – look, Markdown, app","group":"Records","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Asked","text":"\"Ugly, nothing like the video. You should be writing and overwriting these things yourself, e.g. as text or md files. And add it as an app.\""},{"title":"Done","text":"- Rebuilt the visuals to match the reference: monochrome star field, black hole with accretion disk and lensed ring, nebula smoke, comets, minimal UI, Home dashboard with KPI cards and charts.\n- Notes are now Markdown in `brain/` ([[markdown-as-source-of-truth]]); `tools/build-brain.mjs` compiles them.\n- Installable PWA with offline support ([[pwa-instead-of-electron]]).\n- `CLAUDE.md` tells every future session to write a Record and update pages."},{"title":"Open","text":"- [ ] Check the new look on a real Mac and phone @2026-11-23"}],"links":["markdown-as-source-of-truth","pwa-instead-of-electron"],"tasks":[{"done":false,"text":"Check the new look on a real Mac and phone","due":1795456800000}],"body":"## Asked\n\"Ugly, nothing like the video. You should be writing and overwriting these things yourself, e.g. as text or md files. And add it as an app.\"\n\n## Done\n- Rebuilt the visuals to match the reference: monochrome star field, black hole with accretion disk and lensed ring, nebula smoke, comets, minimal UI, Home dashboard with KPI cards and charts.\n- Notes are now Markdown in `brain/` ([[markdown-as-source-of-truth]]); `tools/build-brain.mjs` compiles them.\n- Installable PWA with offline support ([[pwa-instead-of-electron]]).\n- `CLAUDE.md` tells every future session to write a Record and update pages.\n\n## Open\n- [ ] Check the new look on a real Mac and phone @2026-11-23"},{"slug":"2026-11-21-v3-max","path":"brain/Records/2026-11-21-v3-max.md","title":"v3 – Inbox, Ask Claude, time travel, phone artifact","group":"Records","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Asked","text":"\"Improve it to the max, and if possible also make it as an artifact for the phone.\""},{"title":"Done","text":"- **Log it**: quick capture sheet (white + / `N`) with group chips, deadline and dictation; notes land in the Inbox and show up as new stars with a ring.\n- **Ask Claude** on Home (artifact): questions and one-tap prompts answered from the notes with links to the pages used.\n- **Time travel** (`T`): scrub or replay how the brain grew.\n- Hovering or opening a star lights up its linked pages; new pages since the last visit flash.\n- Tasks can be ticked in the reader; no more browser pop-ups (they don't work in artifacts).\n- Phone artifact built from the same code ([[phone-artifact]])."},{"title":"Open","text":"- [ ] File the first notes logged from the phone @2026-11-24\n- [ ] Try dictation and Ask Claude on a real phone @2026-11-23"}],"links":["phone-artifact"],"tasks":[{"done":false,"text":"File the first notes logged from the phone","due":1795543200000},{"done":false,"text":"Try dictation and Ask Claude on a real phone","due":1795456800000}],"body":"## Asked\n\"Improve it to the max, and if possible also make it as an artifact for the phone.\"\n\n## Done\n- **Log it**: quick capture sheet (white + / `N`) with group chips, deadline and dictation; notes land in the Inbox and show up as new stars with a ring.\n- **Ask Claude** on Home (artifact): questions and one-tap prompts answered from the notes with links to the pages used.\n- **Time travel** (`T`): scrub or replay how the brain grew.\n- Hovering or opening a star lights up its linked pages; new pages since the last visit flash.\n- Tasks can be ticked in the reader; no more browser pop-ups (they don't work in artifacts).\n- Phone artifact built from the same code ([[phone-artifact]]).\n\n## Open\n- [ ] File the first notes logged from the phone @2026-11-24\n- [ ] Try dictation and Ask Claude on a real phone @2026-11-23"},{"slug":"keyboard-shortcuts","path":"brain/Reference/keyboard-shortcuts.md","title":"Keyboard shortcuts","group":"Reference","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Navigation","text":"- `⌘K` / `Ctrl K` – search every page\n- `H` – Home dashboard\n- `P` – Pages list\n- `N` – Log something (`⌘↵` saves)\n- `T` – Time travel\n- `Esc` – close / back to the galaxy"},{"title":"Galaxy","text":"- Scroll or pinch – zoom\n- Drag – pan\n- `Space` – pause the motion\n- `0` – reset view"}],"links":[],"tasks":[],"body":"## Navigation\n- `⌘K` / `Ctrl K` – search every page\n- `H` – Home dashboard\n- `P` – Pages list\n- `N` – Log something (`⌘↵` saves)\n- `T` – Time travel\n- `Esc` – close / back to the galaxy\n\n## Galaxy\n- Scroll or pinch – zoom\n- Drag – pan\n- `Space` – pause the motion\n- `0` – reset view"},{"slug":"markdown-format","path":"brain/Reference/markdown-format.md","title":"Note format","group":"Reference","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"File and folder","text":"`brain/<Group>/<slug>.md`. The folder name is the group. The slug is what `[[links]]` point to."},{"title":"Front matter","text":"```\n---\ntitle: Human title\ngroup: Projects        # optional, defaults to folder\ncreated: 2026-11-21\nupdated: 2026-11-21    # bump on every edit – drives \"Updated this week\"\ntags: [a, b]\n---\n```"},{"title":"Body","text":"- `## Heading` starts a new idea (one star).\n- `[[slug]]` links to another page.\n- `- [ ] task @2026-12-01` is an open task with a date; `- [x]` is done."},{"title":"Build","text":"`node tools/build-brain.mjs` → `brain/brain-data.js`. Related: [[markdown-as-source-of-truth]]."}],"links":["markdown-as-source-of-truth"],"tasks":[],"body":"## File and folder\n`brain/<Group>/<slug>.md`. The folder name is the group. The slug is what `[[links]]` point to.\n\n## Front matter\n```\n---\ntitle: Human title\ngroup: Projects        # optional, defaults to folder\ncreated: 2026-11-21\nupdated: 2026-11-21    # bump on every edit – drives \"Updated this week\"\ntags: [a, b]\n---\n```\n\n## Body\n- `## Heading` starts a new idea (one star).\n- `[[slug]]` links to another page.\n- `- [ ] task @2026-12-01` is an open task with a date; `- [x]` is done.\n\n## Build\n`node tools/build-brain.mjs` → `brain/brain-data.js`. Related: [[markdown-as-source-of-truth]]."},{"slug":"first-prototype-review","path":"brain/Reviews/first-prototype-review.md","title":"Review of the first prototype","group":"Reviews","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Verdict","text":"Not good enough. Functional, but it did not look like the reference and kept data only in the browser."},{"title":"What was wrong","text":"- Colourful, sparse star field instead of the dense monochrome galaxy.\n- No black hole – a plain glowing \"NOW\" circle.\n- Big capture bar and coloured UI broke the calm look.\n- Data lived in localStorage, so Claude could not write to it."},{"title":"Lessons","text":"Match the reference first, then add meaning. Keep the data in files. → [[2026-11-21-v2-rewrite]]"}],"links":["2026-11-21-v2-rewrite"],"tasks":[],"body":"## Verdict\nNot good enough. Functional, but it did not look like the reference and kept data only in the browser.\n\n## What was wrong\n- Colourful, sparse star field instead of the dense monochrome galaxy.\n- No black hole – a plain glowing \"NOW\" circle.\n- Big capture bar and coloured UI broke the calm look.\n- Data lived in localStorage, so Claude could not write to it.\n\n## Lessons\nMatch the reference first, then add meaning. Keep the data in files. → [[2026-11-21-v2-rewrite]]"},{"slug":"security-login-review","path":"brain/Reviews/security-login-review.md","title":"Login page security review","group":"Reviews","tags":[],"created":1795219200000,"updated":1795219200000,"ideas":[{"title":"Finding","text":"`login.html` checks the password in the browser against a hard-coded value and stores `isLoggedIn` in sessionStorage. Anyone can read the source or set the flag – it protects nothing."},{"title":"Recommendation","text":"Treat it as a visual demo only, or put real auth behind a backend. Never reuse that password anywhere. Tracked in [[zentry]]."}],"links":["zentry"],"tasks":[],"body":"## Finding\n`login.html` checks the password in the browser against a hard-coded value and stores `isLoggedIn` in sessionStorage. Anyone can read the source or set the flag – it protects nothing.\n\n## Recommendation\nTreat it as a visual demo only, or put real auth behind a backend. Never reuse that password anywhere. Tracked in [[zentry]]."}]};
+</script>
+<script>
+(() => {
+'use strict';
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const DAY = 864e5;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const sod = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const fmtD = t => MON[new Date(t).getMonth()] + ' ' + new Date(t).getDate();
+const fmtFull = t => { const d = new Date(t); return `${MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; };
+const fmtDue = t => { const n = Math.round((sod(t) - sod(Date.now())) / DAY); return n === 0 ? 'today' : n === 1 ? 'tomorrow' : n < 0 ? fmtD(t) : 'by ' + fmtD(t); };
+function ago(t) {
+  const m = (Date.now() - t) / 6e4;
+  if (m < 2) return 'just now'; if (m < 60) return Math.round(m) + ' minutes ago';
+  const h = m / 60; if (h < 36) return Math.round(h) + (Math.round(h) === 1 ? ' hour ago' : ' hours ago');
+  const d = h / 24; return d < 14 ? Math.round(d) + ' days ago' : fmtD(t);
+}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('zentry.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('zentry.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+function rng(seed) { let s = seed >>> 0 || 1; return () => (s = Math.imul(s ^ s >>> 15, 1 | s) + 0x6D2B79F5 >>> 0, ((s ^ s >>> 14) >>> 0) / 4294967296); }
+const strHash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+const gauss = r => { let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2832 * v); };
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= data ================= */
+const BRAIN = window.BRAIN || { pages: [], config: {} };
+const cfg = BRAIN.config || {};
+// parse a raw markdown page in the browser (local edits / imports) – mirrors tools/build-brain.mjs
+function parsePage(raw, slug, path, fallbackGroup) {
+  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/); const meta = {};
+  if (m) m[1].split(/\r?\n/).forEach(l => { const kv = l.match(/^([\w-]+):\s*(.*?)\s*(#.*)?$/); if (kv) meta[kv[1]] = /^\[.*\]$/.test(kv[2]) ? kv[2].slice(1, -1).split(',').map(s => s.trim()).filter(Boolean) : kv[2].replace(/^["']|["']$/g, ''); });
+  const body = m ? raw.slice(m[0].length) : raw;
+  const ideas = []; let cur = null, code = false;
+  body.split(/\r?\n/).forEach(l => { if (/^```/.test(l)) code = !code; const h = !code && l.match(/^##\s+(.+)/); if (h) { cur = { title: h[1].trim(), text: '' }; ideas.push(cur); } else if (cur) cur.text += l + '\n'; });
+  if (!ideas.length) ideas.push({ title: meta.title || slug, text: body });
+  const ts = s => { const t = Date.parse(s); return isNaN(t) ? null : t; };
+  const created = ts(meta.created) || Date.now();
+  return {
+    slug, path, title: meta.title || slug, group: meta.group || fallbackGroup || 'Inbox', tags: Array.isArray(meta.tags) ? meta.tags : [],
+    created, updated: ts(meta.updated) || created, ideas: ideas.map(i => ({ title: i.title, text: i.text.trim() })),
+    links: [...new Set([...body.matchAll(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g)].map(x => x[1].trim()))],
+    tasks: [...body.matchAll(/^\s*[-*]\s+\[( |x|X)\]\s+(.+)$/gm)].map(x => { const d = x[2].match(/@(\d{4}-\d{2}-\d{2})/); return { done: x[1] !== ' ', text: x[2].replace(/@\d{4}-\d{2}-\d{2}/, '').replace(/\s*→.*$/, '').trim(), due: d ? ts(d[1] + 'T18:00:00') : null }; }),
+    body: body.trim(), raw, local: true
+  };
+}
+/* Platform: inside a claude.ai artifact these light up (synced inbox, Ask Claude, dictation, downloads).
+   On GitHub Pages / the installed app they stay null and everything falls back to this device. */
+const P = { artifact: !!(window.claude && typeof window.claude.use === 'function'), db: null, sample: null, dict: null, dl: null };
+let overrides = store.get('overrides', {});      // slug -> raw md edited or imported
+let captures = store.get('captures', []);        // quick notes waiting to be filed into brain/
+const births = new Map();                        // slug -> time of a "supernova" ring
+const iso = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const firstLine = t => t.trim().split('\n')[0].replace(/^#+\s*/, '').slice(0, 80);
+function capturePages() {
+  return captures.filter(c => c.status !== 'filed' && c.text).map(c => {
+    const title = firstLine(c.text) || 'Note';
+    const due = c.due ? Date.parse(c.due + 'T18:00:00') : null;
+    return {
+      slug: 'cap-' + c.id, path: P.db ? 'Inbox · synced, waiting to be filed' : 'Inbox · on this device', title, group: c.group || 'Inbox', tags: [],
+      created: c.ts, updated: c.ts, ideas: [{ title, text: c.text }],
+      links: [...new Set([...c.text.matchAll(/\[\[([^\]|#]+)\]\]/g)].map(x => x[1].trim()))],
+      tasks: due ? [{ done: !!c.done, text: title, due }] : [],
+      body: c.text + (due ? `\n\n- [${c.done ? 'x' : ' '}] ${title} @${c.due}` : ''), capture: c
+    };
+  });
+}
+let pages = [];
+function loadPages() {
+  pages = BRAIN.pages.map(p => overrides[p.slug] ? Object.assign(parsePage(overrides[p.slug], p.slug, p.path, p.group), { edited: true, local: false }) : p);
+  Object.entries(overrides).forEach(([slug, raw]) => { if (!pages.find(p => p.slug === slug)) pages.push(parsePage(raw, slug, 'local/' + slug + '.md', 'Inbox')); });
+  pages.push(...capturePages());
+  const slugs = new Set(pages.map(p => p.slug));
+  pages.forEach(p => p.links = p.links.filter(l => slugs.has(l) && l !== p.slug));
+  pages.forEach(p => p.backlinks = pages.filter(q => q.links.includes(p.slug)).map(q => q.slug));
+}
+loadPages();
+const bySlug = s => pages.find(p => p.slug === s);
+const groupNames = () => [...new Set(pages.map(p => p.group))];
+const lastVisit = store.get('lastVisit', null);
+store.set('lastVisit', Date.now());
+
+/* ================= world layout ================= */
+let W, H, DPR, base;
+let slow = 0, lowRes = false;   // drop to 1x pixels automatically on slow machines
+const HOLE = 40;
+const world = { ideas: [], groups: [], dust: [], disk: [], comets: [], links: [] };
+const ORDER = ['Projects', 'Records', 'Reference', 'Decisions', 'Reviews', 'Ideas', 'Inbox'];
+const ord = n => { const i = ORDER.indexOf(n); return i < 0 ? 99 : i; };
+function buildWorld() {
+  const now = Date.now();
+  const names = groupNames().sort((a, b) => ord(a) - ord(b) || a.localeCompare(b));
+  const n = Math.max(names.length, 5);
+  world.groups = names.map((name, i) => {
+    const r = rng(strHash(name));
+    const ps = pages.filter(p => p.group === name);
+    return { name, ang: (i / n) * Math.PI * 2 - Math.PI / 2 + (r() - .5) * .3, dist: 230 + r() * 70, pages: ps, ideas: ps.reduce((s, p) => s + p.ideas.length, 0), x: 0, y: 0 };
+  });
+  world.ideas = [];
+  world.groups.forEach(g => {
+    let sx = 0, sy = 0, k = 0;
+    g.pages.forEach(p => {
+      const r = rng(strHash(p.slug));
+      const age = Math.max(0, now - p.updated) / DAY;
+      const pr = g.dist + Math.min(1, age / 60) * 160 + gauss(r) * 34;
+      const pa = g.ang + gauss(r) * .2;
+      const px = Math.cos(pa) * pr, py = Math.sin(pa) * pr;
+      p.ideas.forEach((idea, j) => {
+        const rr = rng(strHash(p.slug + j));
+        const d = j === 0 ? 0 : 10 + rr() * 26, a = rr() * 6.2832;
+        const o = { x: px + Math.cos(a) * d, y: py + Math.sin(a) * d, page: p, idea, j, g, fresh: Math.max(0, 1 - age / 21), task: p.tasks.some(t => !t.done && t.due), tw: rr() * 6.28 };
+        world.ideas.push(o); sx += o.x; sy += o.y; k++;
+      });
+    });
+    g.x = k ? sx / k : Math.cos(g.ang) * g.dist; g.y = k ? sy / k : Math.sin(g.ang) * g.dist;
+  });
+  world.links = [];
+  pages.forEach(p => {
+    const own = world.ideas.filter(i => i.page === p);
+    for (let i = 1; i < own.length; i++) world.links.push([own[0], own[i], .09]);
+    p.links.forEach(s => { const q = world.ideas.find(i => i.page.slug === s && i.j === 0); if (q && own[0]) world.links.push([own[0], q, q.g === own[0].g ? .1 : .035]); });
+  });
+  const r = rng(42);
+  world.dust = [];
+  const N = Math.round(Math.min(7000, 3600 + (W * H) / 650));
+  for (let i = 0; i < N; i++) {
+    const rad = 48 + Math.pow(r(), .7) * 560, a = r() * 6.2832;
+    world.dust.push({ r: rad, a, s: r() < .06 ? 1.5 + r() : .4 + r() * .8, al: .12 + r() * .6 * (1 - rad / 700), w: .016 * Math.pow(120 / rad, .9), arm: 0 });
+  }
+  world.groups.forEach(g => {
+    const rr = rng(strHash(g.name + 'dust')), cnt = 220 + g.ideas * 26;
+    for (let i = 0; i < cnt; i++) {
+      const tx = g.x + gauss(rr) * 62, ty = g.y + gauss(rr) * 62;
+      world.dust.push({ r: Math.hypot(tx, ty), a: Math.atan2(ty, tx), s: rr() < .05 ? 1.6 : .35 + rr() * .9, al: .2 + rr() * .6, w: 0, arm: 1 });
+    }
+  });
+  world.dust.forEach(d => d.bk = Math.min(7, Math.floor(d.al * 10)));
+  world.buckets = Array.from({ length: 8 }, (_, i) => world.dust.filter(d => d.bk === i));
+  const rd = rng(7);
+  world.disk = Array.from({ length: 2600 }, () => { const t = Math.pow(rd(), 1.8), rad = 1.22 + t * 4.2; return { r: rad, a: rd() * 6.2832, s: .5 + rd() * 1.1, b: (1 - t) * .9 + .1, v: 1 / Math.pow(rad, 1.5) }; });
+  const rc = rng(99);
+  world.comets = [0, 1, 2, 3, 4].map(i => ({ R: 560 + i * 95 + rc() * 40, a: rc() * 6.28, v: (.035 + rc() * .03) * (rc() < .5 ? -1 : 1), tail: .5 + rc() * .5, cx: (rc() - .5) * 60, cy: (rc() - .5) * 60 }));
+}
+
+/* ================= canvas & camera ================= */
+const cv = $('#sky'), ctx = cv.getContext('2d');
+let neb, sprite, glow;
+const cam = { x: 0, y: 0, z: 1, tx: 0, ty: 0, tz: 1 };
+let rot = 0, paused = reduced, focus = null, hover = null, selIdea = null, homeOpen = false, tt = null;
+function homeCam() { return W > 1000 ? { x: -60, y: 0, z: 1 } : W < 700 ? { x: 0, y: -50, z: .95 } : { x: 0, y: 0, z: .95 }; }
+function makeSprite(sz, stops) { const c = document.createElement('canvas'); c.width = c.height = sz; const g = c.getContext('2d'), gr = g.createRadialGradient(sz / 2, sz / 2, 0, sz / 2, sz / 2, sz / 2); stops.forEach(([o, col]) => gr.addColorStop(o, col)); g.fillStyle = gr; g.fillRect(0, 0, sz, sz); return c; }
+function resize() {
+  DPR = lowRes ? 1 : Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  base = Math.min(W, H) / (W < 700 ? 820 : 960);
+  neb = document.createElement('canvas'); neb.width = Math.ceil(W / 2); neb.height = Math.ceil(H / 2);
+  const n = neb.getContext('2d'), r = rng(5), nw = neb.width, nh = neb.height;
+  for (let i = 0; i < 420; i++) {
+    const edge = r() < .7, a = r() * 6.28, d = edge ? .45 + r() * .45 : r() * .4;
+    const x = nw / 2 + Math.cos(a) * d * nw * .75, y = nh / 2 + Math.sin(a) * d * nh * .75, rad = (14 + r() * 80) * Math.max(nw, nh) / 700;
+    const g = n.createRadialGradient(x, y, 0, x, y, rad), al = .008 + r() * .022;
+    g.addColorStop(0, `rgba(150,150,160,${al})`); g.addColorStop(1, 'rgba(150,150,160,0)');
+    n.fillStyle = g; n.beginPath(); n.arc(x, y, rad, 0, 6.28); n.fill();
+  }
+  sprite = makeSprite(64, [[0, 'rgba(255,255,255,1)'], [.08, 'rgba(255,255,255,.9)'], [.22, 'rgba(220,225,255,.25)'], [1, 'rgba(200,210,255,0)']]);
+  glow = makeSprite(256, [[0, 'rgba(255,236,205,.55)'], [.2, 'rgba(255,214,170,.18)'], [.5, 'rgba(255,200,150,.05)'], [1, 'rgba(255,200,150,0)']]);
+  buildWorld();
+}
+resize();
+Object.assign(cam, homeCam()); cam.tx = cam.x; cam.ty = cam.y; cam.tz = cam.z;
+addEventListener('resize', () => { resize(); if (!focus && !selIdea && !homeOpen) flyHome(); });
+
+const K = () => base * cam.z;
+function S(x, y) { const c = Math.cos(rot), s = Math.sin(rot), k = K(); return [W / 2 + (x * c - y * s - cam.x) * k, H / 2 + (x * s + y * c - cam.y) * k]; }
+function rotP(x, y) { const c = Math.cos(rot), s = Math.sin(rot); return [x * c - y * s, x * s + y * c]; }
+const userName = () => store.get('name', '') || cfg.name || '';
+
+let last = performance.now(), fpsAcc = 0, fpsN = 0, T = 0;
+let screenIdeas = [], labelBoxes = [];
+const FONT = 'Inter, -apple-system, "Segoe UI", sans-serif';
+function frame(now) {
+  const dt = Math.min(60, now - last); last = now;
+  fpsAcc += dt; fpsN++;
+  if (fpsAcc > 800) { const fps = Math.round(1000 / (fpsAcc / fpsN)); fpsAcc = 0; fpsN = 0; if (fps < 42 && DPR > 1 && !document.hidden) { slow++; if (slow > 2) { lowRes = true; DPR = 1; cv.width = W; cv.height = H; } } else slow = 0; $('#sub').textContent = (userName() ? userName() + ' · ' : '') + fps + ' fps'; }
+  if (!paused) { T += dt / 1000; rot += dt * 0.0000075; }
+  const e = reduced ? 1 : 1 - Math.pow(.003, dt / 1000);
+  cam.x += (cam.tx - cam.x) * e; cam.y += (cam.ty - cam.y) * e; cam.z += (cam.tz - cam.z) * e;
+  const k = K();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.fillStyle = '#050506'; ctx.fillRect(0, 0, W, H);
+  ctx.drawImage(neb, -cam.x * .04 * base - 20, -cam.y * .04 * base - 20, W + 40, H + 40);
+
+  const [cx, cy] = S(0, 0);
+  ctx.globalCompositeOperation = 'lighter';
+
+  // orbits + comets
+  world.comets.forEach(c => {
+    const a = c.a + T * c.v, [ox, oy] = S(c.cx, c.cy), R = c.R * k;
+    ctx.strokeStyle = 'rgba(255,255,255,.035)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(ox, oy, R, 0, 6.2832); ctx.stroke();
+    const seg = 26, dir = Math.sign(c.v);
+    for (let i = 0; i < seg; i++) {
+      const a0 = a - dir * c.tail * i / seg, a1 = a - dir * c.tail * (i + 1) / seg;
+      ctx.strokeStyle = `rgba(255,255,255,${.55 * Math.pow(1 - i / seg, 1.6)})`; ctx.lineWidth = 1.4 * (1 - i / seg) + .3;
+      ctx.beginPath(); ctx.arc(ox, oy, R, Math.min(a0, a1) + rot, Math.max(a0, a1) + rot); ctx.stroke();
+    }
+    const hx = ox + Math.cos(a + rot) * R, hy = oy + Math.sin(a + rot) * R;
+    ctx.drawImage(sprite, hx - 9, hy - 9, 18, 18);
+  });
+
+  // dust
+  const cr = Math.cos(rot), sr = Math.sin(rot), ds = Math.min(2, Math.max(.8, cam.z * .9));
+  ctx.fillStyle = 'rgb(235,235,245)';
+  world.buckets.forEach((bucket, bi) => {
+    const al = (bi + .5) / 10, dimmed = [];
+    ctx.globalAlpha = al;
+    for (const d of bucket) {
+      const a = d.a + T * d.w, x0 = Math.cos(a) * d.r, y0 = Math.sin(a) * d.r;
+      const x = W / 2 + (x0 * cr - y0 * sr - cam.x) * k, y = H / 2 + (x0 * sr + y0 * cr - cam.y) * k;
+      if (x < -4 || y < -4 || x > W + 4 || y > H + 4) continue;
+      if (focus && (!d.arm || (x0 - focus.x) ** 2 + (y0 - focus.y) ** 2 > 14400)) { dimmed.push(x, y, d.s); continue; }
+      const s = d.s * ds; ctx.fillRect(x, y, s, s);
+    }
+    if (dimmed.length) { ctx.globalAlpha = al * .3; for (let i = 0; i < dimmed.length; i += 3) ctx.fillRect(dimmed[i], dimmed[i + 1], dimmed[i + 2] * ds, dimmed[i + 2] * ds); }
+  });
+  ctx.globalAlpha = 1;
+
+  // constellation lines
+  const fp = (hover || selIdea) ? (hover || selIdea).page : null;
+  const nb = fp ? new Set([fp.slug, ...fp.links, ...fp.backlinks]) : null;
+  const seen = o => tt === null || o.page.created <= tt;
+  ctx.lineWidth = 1;
+  for (const [a, b, al0] of world.links) {
+    if (!seen(a) || !seen(b)) continue;
+    const lit = nb && (a.page === fp || b.page === fp) && nb.has(a.page.slug) && nb.has(b.page.slug);
+    const al = lit ? .5 : nb ? al0 * .6 : al0;
+    const dim = focus && a.g !== focus && b.g !== focus ? .25 : 1;
+    const [x1, y1] = S(a.x, a.y), [x2, y2] = S(b.x, b.y);
+    ctx.strokeStyle = `rgba(255,255,255,${al * dim})`; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+
+  // ideas (stars)
+  screenIdeas = [];
+  const visCount = new Map();
+  for (const o of world.ideas) {
+    if (!seen(o)) continue;
+    visCount.set(o.g, (visCount.get(o.g) || 0) + 1);
+    const [x, y] = S(o.x, o.y);
+    if (x < -30 || y < -30 || x > W + 30 || y > H + 30) continue;
+    const dim = (focus && o.g !== focus ? .22 : 1) * (nb && !nb.has(o.page.slug) ? .5 : 1);
+    const b0 = o.j === 0 && births.get(o.page.slug);
+    if (b0) {
+      const bt = (now - b0) / 2600;
+      if (bt > 1) births.delete(o.page.slug);
+      else if (bt > 0) { ctx.globalAlpha = 1; ctx.strokeStyle = `rgba(255,236,205,${.7 * (1 - bt)})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, 6 + bt * 46, 0, 6.2832); ctx.stroke(); }
+    }
+    const tw = reduced ? 1 : .8 + .2 * Math.sin(T * 1.7 + o.tw);
+    let sz = (o.j === 0 ? 20 : 13) * (.7 + o.fresh * .5) * Math.min(1.8, Math.max(.8, cam.z));
+    if (o.task) sz *= 1 + .18 * Math.sin(T * 3 + o.tw);
+    if (o === hover || o === selIdea) sz *= 1.7;
+    ctx.globalAlpha = dim * tw;
+    ctx.drawImage(sprite, x - sz / 2, y - sz / 2, sz, sz);
+    screenIdeas.push({ x, y, o });
+  }
+  ctx.globalAlpha = 1;
+
+  // black hole
+  const R = HOLE * k, tilt = .1, spin = T * 1.6;
+  ctx.drawImage(glow, cx - R * 9, cy - R * 9, R * 18, R * 18);
+  const drawDisk = front => {
+    const px = Math.max(.7, k);
+    for (const p of world.disk) {
+      const a = p.a + spin * p.v, sa = Math.sin(a);
+      if ((sa > 0) !== front) continue;
+      const x = cx + Math.cos(a) * p.r * R, y = cy + sa * p.r * R * tilt;
+      if (front && Math.abs(x - cx) < R * 1.05 && y - cy > R * .14) continue;
+      const b = p.b * (front ? 1 : .8) * (Math.cos(a) < 0 ? 1.15 : .85);
+      ctx.fillStyle = `rgba(255,${210 + 40 * p.b | 0},${150 + 80 * p.b | 0},${Math.min(1, b * .75)})`;
+      ctx.fillRect(x, y, p.s * px, p.s * px * .8);
+    }
+  };
+  drawDisk(false);
+  for (let i = 0; i < 6; i++) {               // lensed ring: light from behind bent around the shadow
+    ctx.strokeStyle = `rgba(255,228,190,${.22 - i * .033})`; ctx.lineWidth = (1.4 + i * 2.2) * Math.max(.6, k);
+    ctx.beginPath(); ctx.ellipse(cx, cy, R * 1.28, R * 1.2, 0, 0, 6.2832); ctx.stroke();
+  }
+  const sg = ctx.createLinearGradient(cx - R * 5.4, cy, cx + R * 5.4, cy);
+  sg.addColorStop(0, 'rgba(255,200,140,0)'); sg.addColorStop(.3, 'rgba(255,215,170,.45)'); sg.addColorStop(.5, 'rgba(255,245,225,.9)'); sg.addColorStop(.7, 'rgba(255,215,170,.45)'); sg.addColorStop(1, 'rgba(255,200,140,0)');
+  ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(cx, cy, R * 5.4, R * .15, 0, 0, 6.2832); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, R * 1.02, 0, 6.2832); ctx.fill();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = 'rgba(255,240,220,.85)'; ctx.lineWidth = Math.max(1, 1.3 * k);
+  ctx.beginPath(); ctx.arc(cx, cy, R * 1.04, 0, 6.2832); ctx.stroke();
+  drawDisk(true);
+  // Einstein-ring highlight: the far side of the disk lensed over the top
+  const tg = ctx.createLinearGradient(cx, cy - R * 1.4, cx, cy);
+  tg.addColorStop(0, 'rgba(255,236,205,.55)'); tg.addColorStop(1, 'rgba(255,236,205,0)');
+  ctx.strokeStyle = tg; ctx.lineWidth = Math.max(1.5, 3 * k);
+  ctx.beginPath(); ctx.ellipse(cx, cy, R * 1.16, R * 1.12, 0, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
+  const fg = ctx.createLinearGradient(cx - R * 3.4, cy, cx + R * 3.4, cy);
+  fg.addColorStop(0, 'rgba(255,190,130,0)'); fg.addColorStop(.5, 'rgba(255,240,215,.55)'); fg.addColorStop(1, 'rgba(255,190,130,0)');
+  ctx.fillStyle = fg; ctx.beginPath(); ctx.ellipse(cx, cy + R * .05, R * 3.4, R * .07, 0, 0, Math.PI); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+
+  // "Home" tag under the hole
+  ctx.font = '500 10.5px ' + FONT; ctx.textAlign = 'center';
+  const hy2 = cy + R * 1.55 + 10;
+  ctx.fillStyle = 'rgba(28,28,32,.85)'; rr(cx - 23, hy2 - 10, 46, 20, 10); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText('Home', cx, hy2 + 3.5);
+
+  // group labels
+  labelBoxes = [];
+  world.groups.forEach(g => {
+    const vis = tt === null ? g.ideas : (visCount.get(g) || 0);
+    if (!vis) return;
+    const [x, y] = S(g.x, g.y - 26);
+    const dim = focus && focus !== g ? .35 : 1;
+    ctx.font = '500 11.5px ' + FONT; ctx.fillStyle = `rgba(255,255,255,${.92 * dim})`; ctx.fillText(g.name, x, y);
+    ctx.font = '10px ' + FONT; ctx.fillStyle = `rgba(150,150,160,${dim})`;
+    ctx.fillText(vis + (vis === 1 ? ' idea' : ' ideas'), x, y + 13);
+    const w = Math.max(60, g.name.length * 7.5);
+    labelBoxes.push({ x: x - w / 2, y: y - 13, w, h: 30, g });
+  });
+
+  // titles when zoomed in
+  if (cam.z > 1.9) {
+    ctx.font = '10.5px ' + FONT; ctx.textAlign = 'left';
+    const placed = [...labelBoxes.map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h }))];
+    const list = [...screenIdeas].sort((a, b) => (b.o === selIdea) - (a.o === selIdea) || a.o.j - b.o.j);
+    for (const s of list) {
+      if (s.o.j !== 0 && cam.z < 3.2 && s.o !== selIdea && !(nb && s.o.page === fp)) continue;
+      if (focus && s.o.g !== focus) continue;
+      const t = s.o.j === 0 ? s.o.page.title : s.o.idea.title, w = ctx.measureText(t).width;
+      const b = { x: s.x + 9, y: s.y - 7, w, h: 14 };
+      if (placed.some(q => b.x < q.x + q.w + 8 && q.x < b.x + b.w + 8 && b.y < q.y + q.h && q.y < b.y + b.h)) continue;
+      placed.push(b);
+      ctx.fillStyle = s.o === selIdea ? '#fff' : s.o.j === 0 ? 'rgba(255,255,255,.78)' : 'rgba(190,190,200,.6)';
+      ctx.fillText(t, b.x, s.y + 3.5);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+requestAnimationFrame(frame);
+
+/* ================= camera moves ================= */
+function flyHome() { const h = homeCam(); cam.tx = h.x; cam.ty = h.y; cam.tz = h.z; }
+function flyTo(x, y, z) {
+  const [rx, ry] = rotP(x, y), sideOpen = $('#side').classList.contains('open');
+  cam.tz = z; cam.tx = rx + (sideOpen && W > 700 ? 210 / (base * z) : 0); cam.ty = ry + (sideOpen && W <= 700 ? H * .3 / (base * z) : 0);
+}
+
+/* ================= pointer ================= */
+const tip = $('#tip');
+let down = null, moved = 0, pinch = null;
+const pts = new Map();
+const clampZ = z => Math.max(.45, Math.min(7, z));
+cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); down = [e.clientX, e.clientY]; moved = 0; if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: cam.tz }; } });
+cv.addEventListener('pointermove', e => {
+  if (pts.has(e.pointerId)) {
+    const p = pts.get(e.pointerId), dx = e.clientX - p[0], dy = e.clientY - p[1]; pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; cam.z = cam.tz = clampZ(pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d); moved = 99; return; }
+    moved += Math.abs(dx) + Math.abs(dy);
+    if (moved > 4) { const k = K(); cam.x -= dx / k; cam.y -= dy / k; cam.tx = cam.x; cam.ty = cam.y; tip.style.opacity = 0; }
+    return;
+  }
+  const h = hitIdea(e.clientX, e.clientY); hover = h;
+  cv.style.cursor = h || hitLabel(e.clientX, e.clientY) || hitHole(e.clientX, e.clientY) ? 'pointer' : 'default';
+  if (h) { tip.innerHTML = `${esc(h.j === 0 ? h.page.title : h.idea.title)}<div class="s">${h.j === 0 ? esc(h.g.name) + ' · ' + h.page.ideas.length + ' ideas' : 'Page: ' + esc(h.page.title)}</div>`; tip.style.left = Math.min(W - 270, e.clientX + 14) + 'px'; tip.style.top = e.clientY + 12 + 'px'; tip.style.opacity = 1; }
+  else tip.style.opacity = 0;
+});
+const pUp = e => {
+  pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
+  if (!down || pts.size) return;
+  if (moved < 5) {
+    const h = hitIdea(e.clientX, e.clientY), l = !h && hitLabel(e.clientX, e.clientY);
+    if (h) openPage(h.page, h.j);
+    else if (l) openGroup(l.g);
+    else if (hitHole(e.clientX, e.clientY)) openHome();
+    else if (focus || selIdea || $('#side').classList.contains('open')) closeSide();
+  }
+  down = null;
+};
+cv.addEventListener('pointerup', pUp); cv.addEventListener('pointercancel', pUp);
+cv.addEventListener('pointerleave', () => { hover = null; tip.style.opacity = 0; });
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const k0 = K(), wx = cam.x + (e.clientX - W / 2) / k0, wy = cam.y + (e.clientY - H / 2) / k0;
+  cam.z = cam.tz = clampZ(cam.tz * Math.exp(-e.deltaY * .0016)); const k1 = K();
+  cam.x = cam.tx = wx - (e.clientX - W / 2) / k1; cam.y = cam.ty = wy - (e.clientY - H / 2) / k1;
+}, { passive: false });
+function hitIdea(x, y) { let b = null, bd = W < 700 ? 18 : 11; for (const s of screenIdeas) { if (focus && s.o.g !== focus) continue; const d = Math.hypot(s.x - x, s.y - y); if (d < bd) { bd = d; b = s.o; } } return b; }
+function hitLabel(x, y) { return labelBoxes.find(r => x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.h); }
+function hitHole(x, y) { const [cx, cy] = S(0, 0), R = HOLE * K(); return Math.hypot(x - cx, y - cy) < R * 1.4 || (Math.abs(x - cx) < R * 4 && Math.abs(y - cy) < R * .35) || (Math.abs(x - cx) < 26 && Math.abs(y - (cy + R * 1.55 + 10)) < 12); }
+
+/* ================= greeting ================= */
+function renderHello() {
+  const hr = new Date().getHours(), name = userName();
+  $('#greet').textContent = (hr < 5 ? 'Late night' : hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Evening') + (name ? ', ' + name : '') + '.';
+  $('#since').textContent = lastVisit ? 'Since you were last here · ' + ago(lastVisit) : 'First visit · welcome';
+  const changed = lastVisit ? pages.filter(p => p.updated > lastVisit) : [];
+  const recs = pages.filter(p => p.group === 'Records').sort((a, b) => b.updated - a.updated || b.slug.localeCompare(a.slug));
+  $('#note').innerHTML = !lastVisit
+    ? `Your second brain: ${pages.length} pages and ${pages.reduce((s, p) => s + p.ideas.length, 0)} ideas so far. Click the black hole for Home.`
+    : changed.length
+      ? `${changed.length} page${changed.length > 1 ? 's' : ''} changed while you were away${recs[0] && recs[0].updated > lastVisit ? ` – latest summary: <a style="color:#fff;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)" data-slug="${esc(recs[0].slug)}">${esc(recs[0].title)}</a>` : ''}.`
+      : 'Everything is where you left it; nothing new came in.';
+  const waiting = captures.filter(c => c.status !== 'filed').length;
+  if (waiting) $('#note').innerHTML += ` <span style="color:var(--muted)">${waiting} note${waiting > 1 ? 's' : ''} in your Inbox ${P.db ? 'waiting for Claude to file' : 'on this device'}.</span>`;
+  const tasks = pages.flatMap(p => p.tasks.filter(t => !t.done && t.due).map(t => ({ ...t, page: p }))).sort((a, b) => a.due - b.due).slice(0, W < 700 ? 2 : 5);
+  $('#upcoming').innerHTML = tasks.length ? tasks.map(t => `<div class="up" data-slug="${esc(t.page.slug)}"><span class="d ${t.due < sod(Date.now()) ? 'late' : ''}">${fmtDue(t.due)}</span><span class="t">${esc(t.text)}</span></div>`).join('') : '<div style="color:var(--dim);font-size:12px">Nothing scheduled.</div>';
+  $('#hello').querySelectorAll('[data-slug]').forEach(el => el.onclick = () => openPage(bySlug(el.dataset.slug)));
+}
+$('#greet').onclick = () => {
+  const h = $('#greet'), inp = document.createElement('input');
+  inp.className = 'name-in'; inp.id = 'nameIn'; inp.value = userName(); inp.placeholder = 'Your name'; inp.setAttribute('aria-label', 'Your name');
+  h.hidden = true; h.after(inp); inp.focus();
+  const done = () => { store.set('name', inp.value.trim()); inp.remove(); h.hidden = false; renderHello(); };
+  inp.onkeydown = e => { if (e.key === 'Enter') done(); if (e.key === 'Escape') { inp.remove(); h.hidden = false; } e.stopPropagation(); };
+  inp.onblur = done;
+};
+
+/* ================= markdown ================= */
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[^*\w])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
+    .replace(/\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g, (m, s, l) => { const p = bySlug(s.trim()); return `<a class="wl" data-slug="${s.trim()}">${l || (p ? esc(p.title) : s)}</a>`; })
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/@(\d{4}-\d{2}-\d{2})/g, (m, d) => `<span class="due">${fmtDue(Date.parse(d + 'T18:00'))}</span>`);
+}
+function renderMd(src) {
+  let out = '', para = [], list = false, code = null, h2 = 0, tn = 0;
+  const flushP = () => { if (para.length) { out += '<p>' + inline(para.join(' ')) + '</p>'; para = []; } };
+  const flush = () => { flushP(); if (list) { out += '</ul>'; list = false; } };
+  for (const line of src.split(/\r?\n/)) {
+    if (code !== null) { if (/^```/.test(line)) { out += `<pre><code>${esc(code)}</code></pre>`; code = null; } else code += (code ? '\n' : '') + line; continue; }
+    if (/^```/.test(line)) { flush(); code = ''; continue; }
+    const h = line.match(/^(#{1,3})\s+(.+)/);
+    if (h) { flush(); const lv = h[1].length; out += `<h${lv}${lv === 2 ? ` id="idea-${h2++}"` : ''}>${inline(h[2])}</h${lv}>`; continue; }
+    const t = line.match(/^\s*[-*]\s+\[( |x|X)\]\s+(.*)/), li = !t && line.match(/^\s*[-*]\s+(.*)/);
+    if (t || li) { flushP(); if (!list) { out += '<ul>'; list = true; }
+      out += t ? `<li class="task ${t[1] !== ' ' ? 'done' : ''}"><input type="checkbox" data-task="${tn++}" aria-label="Done" ${t[1] !== ' ' ? 'checked' : ''}><span>${inline(t[2])}</span></li>` : `<li>${inline(li[1])}</li>`; continue; }
+    if (!line.trim()) { flush(); continue; }
+    if (list) { out += '</ul>'; list = false; }
+    para.push(line.trim());
+  }
+  if (code !== null) out += `<pre><code>${esc(code)}</code></pre>`;
+  flush(); return out;
+}
+
+/* ================= side panel ================= */
+const side = $('#side');
+function bindLinks(root) {
+  root.querySelectorAll('[data-slug]').forEach(el => el.onclick = ev => { ev.preventDefault(); const p = bySlug(el.dataset.slug); if (p) { closeHome(true); openPage(p, +(el.dataset.idea || 0)); } });
+  root.querySelectorAll('[data-group]').forEach(el => el.onclick = () => { const g = world.groups.find(x => x.name === el.dataset.group); if (g) { closeHome(true); openGroup(g); } });
+  root.querySelectorAll('[data-close]').forEach(el => el.onclick = closeSide);
+}
+function showSide(html) { side.innerHTML = html; side.classList.add('open'); $('#hello').classList.add('hide'); bindLinks(side); }
+function closeSide() { side.classList.remove('open'); focus = null; selIdea = null; if (!homeOpen) { $('#hello').classList.remove('hide'); flyHome(); } }
+function rawOf(p) {
+  if (overrides[p.slug]) return overrides[p.slug];
+  if (p.raw) return p.raw;
+  const d = t => new Date(t).toISOString().slice(0, 10);
+  return `---\ntitle: ${p.title}\ngroup: ${p.group}\ncreated: ${d(p.created)}\nupdated: ${d(p.updated)}\n${p.tags.length ? `tags: [${p.tags.join(', ')}]\n` : ''}---\n${p.body}\n`;
+}
+function openPage(p, j = 0, editing = false) {
+  if (!p) return;
+  const o = store.get('opened', []).filter(s => s !== p.slug); o.unshift(p.slug); store.set('opened', o.slice(0, 12));
+  focus = null;
+  const ideaObj = world.ideas.find(x => x.page === p && x.j === j) || world.ideas.find(x => x.page === p);
+  selIdea = ideaObj;
+  const back = p.backlinks.map(bySlug).filter(Boolean);
+  showSide(`
+    <div class="hd"><h2>${esc(p.title)}</h2><button class="x" data-close>✕</button></div>
+    <div class="meta"><span class="chip">${esc(p.group)}</span>Updated ${ago(p.updated)} · ${p.ideas.length} ideas · <span style="font-family:ui-monospace,Menlo,monospace">${esc(p.path)}</span>${p.edited ? ' · <span style="color:var(--orange)">edited in this browser</span>' : ''}</div>
+    <div class="tools"><button class="btn" id="bEdit">${editing ? 'Preview' : 'Edit'}</button>${p.capture ? '' : '<button class="btn" id="bDl">Download .md</button>'}${p.capture ? '<button class="btn" id="bDelCap">Remove</button>' : p.edited || p.local ? `<button class="btn" id="bRevert">${p.local ? 'Delete local note' : 'Revert my edits'}</button>` : ''}</div>
+    <div class="scroll">${editing ? `<textarea class="edit" id="ta" spellcheck="false"></textarea><div class="tools" style="padding:10px 0 0"><button class="btn" id="bSave" style="border-color:#fff;color:#fff">Save</button></div>` : `<div class="md">${renderMd(p.body)}</div>`}
+    ${back.length && !editing ? `<div class="back"><div class="eyebrow">Linked from</div>${back.map(b => `<div class="li" data-slug="${esc(b.slug)}"><div class="a">${esc(b.title)}</div><div class="s">${esc(b.group)}</div></div>`).join('')}</div>` : ''}</div>`);
+  side.querySelectorAll('input[data-task]').forEach(cb => cb.onchange = () => toggleTask(p, +cb.dataset.task, cb.checked));
+  if (editing) { $('#ta').value = p.capture ? p.capture.text : rawOf(p); $('#ta').focus(); $('#bSave').onclick = () => { if (p.capture) { updateCapture(p.capture.id, { text: $('#ta').value }); return; } saveOverride(p.slug, $('#ta').value); reload(p.slug); toast(P.db ? 'Saved · Claude will see it' : 'Saved on this device · Download .md to keep it'); }; }
+  else { const h = side.querySelector('#idea-' + j); if (h && j > 0) { h.scrollIntoView({ block: 'start' }); h.classList.add('hl'); } }
+  $('#bEdit').onclick = () => openPage(p, j, !editing);
+  if ($('#bDl')) $('#bDl').onclick = () => download(p.slug + '.md', rawOf(p));
+  if ($('#bRevert')) $('#bRevert').onclick = () => { saveOverride(p.slug, null); reload(p.slug); toast(p.local ? 'Deleted' : 'Reverted to the repo version'); };
+  if ($('#bDelCap')) $('#bDelCap').onclick = () => { removeCapture(p.capture.id); closeSide(); toast('Removed from Inbox'); };
+  if (ideaObj) flyTo(ideaObj.x, ideaObj.y, j > 0 ? 3.4 : 2.5);
+}
+function saveOverride(slug, raw) {
+  if (raw == null) delete overrides[slug]; else overrides[slug] = raw;
+  store.set('overrides', overrides);
+  if (P.db) (raw == null ? P.db.doc('edits/' + slug).delete() : P.db.doc('edits/' + slug).set({ raw, ts: Date.now() })).catch(() => toast('Could not sync that edit – it is kept on this device'));
+}
+function toggleTask(p, n, done) {
+  if (p.capture) { updateCapture(p.capture.id, { done }); return; }
+  const lines = rawOf(p).split('\n'); let code = false, k = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^```/.test(lines[i])) code = !code;
+    if (!code && /^\s*[-*]\s+\[( |x|X)\]\s+/.test(lines[i]) && ++k === n) { lines[i] = lines[i].replace(/\[( |x|X)\]/, done ? '[x]' : '[ ]'); break; }
+  }
+  const raw = lines.join('\n').replace(/^(updated:\s*).*$/m, '$1' + iso(Date.now()));
+  saveOverride(p.slug, raw); refreshData(); toast(done ? 'Done ✓' : 'Reopened');
+}
+function reload(slug) { loadPages(); buildWorld(); renderHello(); const p = bySlug(slug); if (p) openPage(p); else closeSide(); }
+function openGroup(g) {
+  selIdea = null; focus = g;
+  const ps = [...g.pages].sort((a, b) => b.updated - a.updated);
+  showSide(`
+    <div class="hd"><h2>${esc(g.name)}</h2><button class="x" data-close>✕</button></div>
+    <div class="meta">${ps.length} pages · ${g.ideas} ideas · last update ${ago(ps[0].updated)}</div>
+    <div class="scroll">${ps.map(p => `<div class="li" data-slug="${esc(p.slug)}"><div class="a">${esc(p.title)}</div><div class="s">${p.ideas.slice(0, 4).map(i => esc(i.title)).join(' · ')}${p.ideas.length > 4 ? ' …' : ''}</div></div>`).join('')}</div>`);
+  flyTo(g.x, g.y, 1.9);
+}
+function openPages() {
+  focus = null; selIdea = null;
+  const gs = world.groups.map(g => `<div class="grp"><b>${esc(g.name)}</b><span>${g.pages.length}</span></div>` + [...g.pages].sort((a, b) => b.updated - a.updated).map(p => `<div class="li" data-slug="${esc(p.slug)}"><div class="a">${esc(p.title)}</div><div class="s">${p.ideas.length} ideas · ${ago(p.updated)}</div></div>`).join('')).join('');
+  showSide(`<div class="hd"><h2>Pages</h2><span class="chip">${pages.length}</span><button class="x" data-close>✕</button></div>
+    <div class="tools"><button class="btn" id="bNew">+ New note</button><button class="btn" id="bImport">Import .md</button></div>
+    <div class="scroll" style="padding-top:0">${gs}</div>`);
+  $('#bNew').onclick = () => openCapture(); $('#bImport').onclick = importMd;
+  flyHome();
+}
+function importMd() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.md,.markdown,.txt,text/markdown,text/plain'; inp.multiple = true;
+  inp.onchange = async () => {
+    for (const f of inp.files) saveOverride(f.name.replace(/\.(md|markdown|txt)$/i, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-'), await f.text());
+    refreshData(); openPages(); toast(`Imported ${inp.files.length} file${inp.files.length > 1 ? 's' : ''}`);
+  };
+  inp.click();
+}
+function download(name, text) {
+  if (P.dl) { P.dl.save({ filename: name, data: text }).then(() => toast('Saved ' + name)).catch(e => { if (e && e.code !== 'declined') toast('Could not save the file'); }); return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/markdown' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+
+/* ================= home dashboard ================= */
+function openHome() {
+  if (homeOpen) return; homeOpen = true;
+  side.classList.remove('open'); focus = null; selIdea = null;
+  cam.tx = 0; cam.ty = 0; cam.tz = 5.5;                       // dive into the black hole
+  $('#hello').classList.add('hide');
+  setTimeout(() => { if (!homeOpen) return; renderHome(); $('#home').classList.add('open'); $('#scrim').classList.add('open'); }, reduced ? 0 : 380);
+}
+function closeHome(keepCam) {
+  if (!homeOpen) return; homeOpen = false;
+  $('#home').classList.remove('open'); $('#scrim').classList.remove('open'); $('#q').value = '';
+  if (keepCam !== true) { flyHome(); $('#hello').classList.remove('hide'); }
+}
+const spark = vals => { const m = Math.max(1, ...vals); return `<div class="spark">${vals.map(v => `<i style="height:${Math.max(2, v / m * 22)}px"></i>`).join('')}</div>`; };
+const WEEKS = [7, 6, 5, 4, 3, 2, 1, 0];
+function renderHome(q = '') {
+  const now = Date.now();
+  $('#today').textContent = fmtFull(now);
+  if (q.trim()) return renderSearch(q);
+  const ideas = pages.reduce((s, p) => s + p.ideas.length, 0), links = pages.reduce((s, p) => s + p.links.length, 0);
+  const wk = pages.filter(p => p.updated > now - 7 * DAY).length, newWk = pages.filter(p => p.created > now - 7 * DAY).length;
+  const upTo = w => pages.filter(p => p.created <= now - w * 7 * DAY);
+  const perDay = Array.from({ length: 30 }, (_, i) => { const d0 = sod(now) - (29 - i) * DAY; return pages.filter(p => p.updated >= d0 && p.updated < d0 + DAY).length; });
+  const mx = Math.max(1, ...perDay);
+  const gs = world.groups.map(g => ({ g, n: g.ideas })).sort((a, b) => b.n - a.n), gmax = Math.max(1, ...gs.map(x => x.n));
+  const conn = pages.map(p => ({ p, n: p.links.length + p.backlinks.length })).sort((a, b) => b.n - a.n).slice(0, 6), cmax = Math.max(1, ...conn.map(x => x.n));
+  const opened = store.get('opened', []).map(bySlug).filter(Boolean);
+  const recent = (opened.length ? opened : [...pages].sort((a, b) => b.updated - a.updated)).slice(0, 4);
+  const recs = pages.filter(p => p.group === 'Records').sort((a, b) => b.updated - a.updated || b.slug.localeCompare(a.slug)).slice(0, 4);
+  const per = n => (n / Math.max(1, pages.length)).toFixed(1);
+  const inbox = captures.filter(c => c.status !== 'filed');
+  $('#homeBody').innerHTML = `
+  ${P.sample ? `<div class="prompts">${[['Summarize this week', 'Summarize what happened in my notes this week in a few bullets.'], ["What's next?", 'What should I work on next? Use open tasks, deadlines and recent records.'], ['Decisions so far', 'List the decisions we have made so far and the reason for each, briefly.'], ['Review my Inbox', 'Go through my Inbox notes and suggest which existing page each belongs to.']].map(([l, q]) => `<button data-ask="${esc(q)}">${esc(l)}</button>`).join('')}</div>` : ''}
+  <div class="grid k4">
+    <div class="box kpi" style="--c:var(--orange)"><div class="n">${pages.length}</div><div class="l">Pages</div><div class="s">in ${world.groups.length} groups</div><span class="b">+${newWk} new</span>${spark(WEEKS.map(w => upTo(w).length))}</div>
+    <div class="box kpi" style="--c:var(--green)"><div class="n">${ideas}</div><div class="l">Ideas</div><div class="s">sections across all pages</div><span class="b">${per(ideas)} / page</span>${spark(WEEKS.map(w => upTo(w).reduce((s, p) => s + p.ideas.length, 0)))}</div>
+    <div class="box kpi" style="--c:var(--blue)"><div class="n">${links}</div><div class="l">Links</div><div class="s">between pages</div><span class="b">${per(links)} / page</span>${spark(WEEKS.map(w => upTo(w).reduce((s, p) => s + p.links.length, 0)))}</div>
+    <div class="box kpi" style="--c:var(--purple)"><div class="n">${wk}</div><div class="l">Updated this week</div><div class="s">pages changed in 7 days</div><span class="b">${Math.round(wk / Math.max(1, pages.length) * 100)}%</span>${spark(WEEKS.map(w => pages.filter(p => p.updated > now - (w + 1) * 7 * DAY && p.updated <= now - w * 7 * DAY).length))}</div>
+  </div>
+  ${inbox.length ? `<div class="box" style="margin-top:10px"><div class="eyebrow sm">Inbox · ${inbox.length} waiting to be filed${P.db ? ' by Claude' : ' · this device'}</div>${inbox.slice(0, 6).map(c => `<div class="li cap-item" data-slug="cap-${esc(c.id)}"><div class="a"><span>${esc(firstLine(c.text))}</span><span class="badge">${esc(c.group || 'Inbox')}</span></div><div class="s">${ago(c.ts)}${c.due ? ' · ' + fmtDue(Date.parse(c.due + 'T18:00')) : ''}${c.done ? ' · done' : ''}</div></div>`).join('')}</div>` : ''}
+  <div class="grid k3" style="margin-top:10px">
+    <div class="box" style="--c:var(--purple)"><h3>Pages updated</h3><div class="sub">Per day, last 30 days</div>
+      <div style="padding-left:20px"><div class="chart"><span class="yl" style="top:-4px">${mx}</span><span class="yl" style="top:46%">${Math.round(mx / 2)}</span><span class="yl" style="bottom:-4px">0</span>${perDay.map((v, i) => `<i class="${v ? '' : 'z'}" style="height:${v / mx * 100}%" title="${fmtD(sod(now) - (29 - i) * DAY)}: ${v}"></i>`).join('')}</div>
+      <div class="ax"><span>${fmtD(now - 29 * DAY)}</span><span>${fmtD(now - 15 * DAY)}</span><span>${fmtD(now)}</span></div></div></div>
+    <div class="box" style="--c:var(--green)"><h3>Ideas by group</h3><div class="sub">Sections per group · click to fly there</div>
+      ${gs.map(x => `<div class="hb" data-group="${esc(x.g.name)}" style="--c:var(--green)"><div class="r"><span>${esc(x.g.name)}</span><span>${x.n}</span></div><div class="t"><i style="width:${x.n / gmax * 100}%"></i></div></div>`).join('')}</div>
+    <div class="box" style="--c:var(--blue)"><h3>Most connected pages</h3><div class="sub">Links to other pages · click to open</div>
+      ${conn.map(x => `<div class="hb" data-slug="${esc(x.p.slug)}" style="--c:var(--blue)"><div class="r"><span>${esc(x.p.title)}</span><span>${x.n}</span></div><div class="t"><i style="width:${x.n / cmax * 100}%"></i></div></div>`).join('')}</div>
+  </div>
+  <div class="grid k2" style="margin-top:10px">
+    <div class="box"><div class="eyebrow sm">Recent activity</div>${recent.map(p => `<div class="li" data-slug="${esc(p.slug)}"><div class="a">${esc(p.title)}</div><div class="s">${opened.length ? 'Opened' : 'Updated'} · ${esc(p.group)}</div></div>`).join('')}</div>
+    <div class="box"><div class="eyebrow sm">Newest conversation summaries</div>${recs.length ? recs.map(p => `<div class="li" data-slug="${esc(p.slug)}"><div class="a">Record: ${esc(p.title)}</div><div class="s">Summary created ${new Date(p.created).toISOString().slice(0, 10)}</div></div>`).join('') : '<div class="empty">No summaries yet.</div>'}</div>
+  </div>`;
+  bindLinks($('#homeBody'));
+  $('#homeBody').querySelectorAll('[data-ask]').forEach(b => b.onclick = () => ask(b.dataset.ask));
+}
+function renderSearch(q) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean), hits = [];
+  pages.forEach(p => p.ideas.forEach((i, j) => {
+    const hay = (p.title + ' ' + i.title + ' ' + i.text).toLowerCase();
+    if (words.every(w => hay.includes(w))) hits.push({ p, i, j, score: words.filter(w => (p.title + ' ' + i.title).toLowerCase().includes(w)).length });
+  }));
+  hits.sort((a, b) => b.score - a.score || b.p.updated - a.p.updated);
+  const mark = s => { let h = esc(s); words.forEach(w => h = h.replace(new RegExp('(' + esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>')); return h; };
+  const snip = t => { const l = t.toLowerCase(), at = l.indexOf(words[0]), k = Math.max(0, at - 40); return (k ? '…' : '') + t.slice(k, k + 140).replace(/\s+/g, ' '); };
+  $('#homeBody').innerHTML = `<div class="box res"><div class="eyebrow sm">${hits.length} result${hits.length === 1 ? '' : 's'}</div>${hits.slice(0, 50).map(h => `<div class="li" data-slug="${esc(h.p.slug)}" data-idea="${h.j}"><div class="a">${mark(h.p.title)}${h.p.ideas.length > 1 ? ' <span style="color:var(--dim)">›</span> ' + mark(h.i.title) : ''}</div><div class="s">${esc(h.p.group)} · ${mark(snip(h.i.text))}</div></div>`).join('') || '<div class="empty">Nothing found.</div>'}</div>`;
+  bindLinks($('#homeBody'));
+}
+$('#q').addEventListener('input', e => renderHome(e.target.value));
+$('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('#q').value.trim(); const f = $('#homeBody [data-slug]'); if (P.sample && (/\?$/.test(v) || !f)) ask(v); else if (f) f.click(); } });
+$('#askBtn').onclick = e => { e.preventDefault(); ask($('#q').value); };
+
+/* ================= ask Claude (artifact only) ================= */
+let askCtrl = null;
+function refreshAskUI() { $('#askBtn').hidden = !P.sample; $('#q').placeholder = P.sample ? (W < 700 ? 'Search or ask…' : 'Search, or ask your notes a question…') : 'Search every page and conversation…'; if (homeOpen && !$('#q').value.trim()) renderHome(); }
+async function ask(q) {
+  q = (q || '').trim(); if (!P.sample || !q) return;
+  if (askCtrl) askCtrl.abort();
+  const ctrl = askCtrl = new AbortController(), out = $('#askOut');
+  out.innerHTML = `<div class="answer"><div class="q"><span>${esc(q)}</span><button class="x" id="askX" style="width:22px;height:22px" aria-label="Close answer">✕</button></div><div class="md" id="ansMd"><span class="think">Reading your notes…</span></div></div>`;
+  $('#askX').onclick = () => { ctrl.abort(); out.innerHTML = ''; };
+  out.parentElement.scrollTop = 0;
+  const paint = t => { const el = $('#ansMd'); if (!el || ctrl.signal.aborted) return; el.innerHTML = renderMd(t || '') || '<span class="think">Thinking…</span>'; bindLinks(el); };
+  let notes = [...pages].sort((a, b) => b.updated - a.updated).map(p => `### ${p.title} [[${p.slug}]]\n(${p.group} · updated ${iso(p.updated)}${p.capture ? ' · Inbox note, not filed yet' : ''})\n${p.body}`).join('\n\n');
+  try { const lim = await P.sample.limits(); if (lim && lim.maxPromptBytes && notes.length > lim.maxPromptBytes * .8) notes = notes.slice(0, Math.floor(lim.maxPromptBytes * .8)); } catch (e) {}
+  const prompt = `You are the "Second Brain" of the person reading this: a calm, precise assistant that knows only their notes below (the Zentry project and everything they logged).
+Answer the question using these notes only. Reply in the language the question is written in. Keep it short: a few sentences or bullets, Markdown allowed (no headings).
+Whenever you rely on a note, cite it inline as [[slug]] exactly as written in that note's header. If the notes do not contain the answer, say so in one line and suggest what to write down.
+Today is ${iso(Date.now())}.
+
+<notes>
+${notes}
+</notes>
+
+Question: ${q}`;
+  try { const r = await P.sample(prompt, { onText: ({ text }) => paint(text), signal: ctrl.signal, cache: false }); paint(r.text); }
+  catch (e) {
+    if (ctrl.signal.aborted) return;
+    if (e && e.code === 'not_granted') { P.sample = null; out.innerHTML = ''; refreshAskUI(); return; }
+    const el = $('#ansMd'); if (el) el.innerHTML = `<span class="think">${e && e.code === 'rate_limited' ? 'Too many questions in a row. Try again in a minute.' : 'Claude could not answer right now. Try again.'}</span>`;
+  }
+}
+
+/* ================= capture ================= */
+let capGroup = 'Inbox';
+function openCapture() {
+  closeHome(true);
+  const gs = ['Inbox', ...world.groups.map(g => g.name).filter(n => n !== 'Inbox')];
+  $('#capGroups').innerHTML = gs.map(n => `<button type="button" data-g="${esc(n)}" class="${n === capGroup ? 'on' : ''}">${esc(n)}</button>`).join('');
+  $('#capGroups').querySelectorAll('button').forEach(b => b.onclick = () => { capGroup = b.dataset.g; $('#capWhere').textContent = capGroup; $('#capGroups').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); });
+  $('#capWhere').textContent = capGroup;
+  $('#capText').value = store.get('draft', '');
+  $('#capHint').textContent = P.db ? 'Synced to your Second Brain. Claude files it into the right page next session.' : P.artifact ? 'Saved on this device only (sync is not available in this view).' : 'Saved on this device. Use the Second Brain artifact on your phone to send notes to Claude.';
+  $('#capSheet').classList.add('open'); $('#scrim').classList.add('open'); $('#hello').classList.add('hide');
+  updateSave(); setTimeout(() => $('#capText').focus(), 60);
+}
+function closeCapture() {
+  if (!$('#capSheet').classList.contains('open')) return;
+  $('#capSheet').classList.remove('open'); if (!homeOpen) { $('#scrim').classList.remove('open'); if (!side.classList.contains('open')) $('#hello').classList.remove('hide'); }
+  if (P.dict && P.dict.active()) P.dict.stop().catch(() => {});
+}
+const updateSave = () => { $('#capSave').disabled = !$('#capText').value.trim(); };
+$('#capText').addEventListener('input', () => { store.set('draft', $('#capText').value); updateSave(); });
+$('#capText').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveCapture(); });
+$('#capSave').onclick = saveCapture; $('#capClose').onclick = closeCapture; $('#addBtn').onclick = openCapture;
+async function saveCapture() {
+  const text = $('#capText').value.trim(); if (!text) return;
+  const c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, group: capGroup, due: $('#capDue').value || null, ts: Date.now(), status: 'new', done: false };
+  captures = [c, ...captures]; if (!P.db) store.set('captures', captures);
+  store.set('draft', ''); $('#capText').value = ''; $('#capDue').value = '';
+  closeCapture(); refreshData(); births.set('cap-' + c.id, performance.now());
+  toast(P.db ? `Saved to ${capGroup} · Claude will file it` : `Saved to ${capGroup} on this device`);
+  if (P.db) try { await P.db.collection('captures').doc(c.id).set(c); } catch (e) { toast('Could not sync that note. Check your connection and log it again.'); }
+}
+function updateCapture(id, patch) {
+  captures = captures.map(c => c.id === id ? { ...c, ...patch } : c);
+  if (P.db) P.db.doc('captures/' + id).update(patch).catch(() => toast('Could not sync that change'));
+  else store.set('captures', captures);
+  refreshData(); const p = bySlug('cap-' + id); if (p && side.classList.contains('open')) openPage(p);
+}
+function removeCapture(id) {
+  captures = captures.filter(c => c.id !== id);
+  if (P.db) P.db.doc('captures/' + id).delete().catch(() => toast('Could not remove it from the synced Inbox'));
+  else store.set('captures', captures);
+  refreshData();
+}
+function refreshData() {
+  const sel = selIdea && { slug: selIdea.page.slug, j: selIdea.j }, fg = focus && focus.name;
+  loadPages(); buildWorld(); renderHello();
+  selIdea = sel ? world.ideas.find(o => o.page.slug === sel.slug && o.j === sel.j) || null : null;
+  focus = fg ? world.groups.find(g => g.name === fg) || null : null;
+  if (homeOpen && !$('#q').value.trim()) renderHome();
+}
+
+/* ================= time travel ================= */
+const ttRange = $('#ttRange');
+function setTT(v) {
+  const a = Math.min(...pages.map(p => p.created)) - DAY, b = Date.now();
+  tt = v >= 1000 ? b + DAY : a + (b - a) * v / 1000;
+  $('#ttLbl').textContent = fmtFull(Math.min(tt, b)) + ' · ' + pages.filter(p => p.created <= tt).length + ' pages';
+}
+let ttAnim = 0;
+$('#timeBtn').onclick = () => {
+  const open = $('#time').classList.toggle('open'); $('#timeBtn').classList.toggle('on', open);
+  cancelAnimationFrame(ttAnim);
+  if (open) { ttRange.value = 1000; setTT(1000); } else tt = null;
+};
+ttRange.oninput = () => { cancelAnimationFrame(ttAnim); setTT(+ttRange.value); };
+$('#ttPlay').onclick = () => {
+  cancelAnimationFrame(ttAnim); const t0 = performance.now();
+  const step = now => { const v = Math.min(1000, (now - t0) / 6000 * 1000); ttRange.value = v; setTT(v); if (v < 1000) ttAnim = requestAnimationFrame(step); };
+  ttAnim = requestAnimationFrame(step);
+};
+document.querySelectorAll('[data-close-home]').forEach(b => b.onclick = () => closeHome());
+$('#scrim').onclick = () => { if ($('#capSheet').classList.contains('open')) closeCapture(); else closeHome(); };
+
+/* ================= chrome ================= */
+$('#homeBtn').onclick = () => homeOpen ? closeHome() : openHome();
+$('#pagesBtn').onclick = () => { closeHome(true); side.classList.contains('open') && !focus && !selIdea ? closeSide() : openPages(); };
+$('#zin').onclick = () => cam.tz = clampZ(cam.tz * 1.35);
+$('#zout').onclick = () => cam.tz = clampZ(cam.tz / 1.35);
+$('#zreset').onclick = () => { closeHome(); closeSide(); };
+const setPaused = v => { paused = v; $('#pause').innerHTML = v ? '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l7.5-4.5z"/></svg>' : '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="4.5" y="3.5" width="2.2" height="9" rx=".6"/><rect x="9.3" y="3.5" width="2.2" height="9" rx=".6"/></svg>'; };
+setPaused(paused);
+$('#pause').onclick = () => setPaused(!paused);
+$('#full').onclick = () => { try { const r = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); if (r && r.catch) r.catch(() => toast('Fullscreen is not available here')); } catch (e) { toast('Fullscreen is not available here'); } };
+if (cfg.title) $('#appTitle').textContent = cfg.title;
+addEventListener('keydown', e => {
+  const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openHome(); setTimeout(() => $('#q').focus(), reduced ? 0 : 420); return; }
+  if (e.key === 'Escape') { if (typing) document.activeElement.blur(); if ($('#capSheet').classList.contains('open')) closeCapture(); else if (homeOpen) closeHome(); else closeSide(); return; }
+  if (typing) return;
+  if (e.key === ' ') { e.preventDefault(); setPaused(!paused); }
+  else if (e.key.toLowerCase() === 'h') homeOpen ? closeHome() : openHome();
+  else if (e.key.toLowerCase() === 'p') $('#pagesBtn').click();
+  else if (e.key === '0') $('#zreset').click();
+  else if (e.key.toLowerCase() === 'n') { e.preventDefault(); openCapture(); }
+  else if (e.key.toLowerCase() === 't') $('#timeBtn').click();
+  else if (e.key === '+' || e.key === '=') $('#zin').click();
+  else if (e.key === '-') $('#zout').click();
+});
+let tT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tT); tT = setTimeout(() => t.classList.remove('show'), 2600); }
+
+renderHello();
+if (lastVisit) pages.filter(p => p.updated > lastVisit).forEach((p, i) => births.set(p.slug, performance.now() + 600 + i * 250));
+
+/* ================= claude.ai artifact features ================= */
+if (P.artifact) {
+  const use = n => window.claude.use(n).catch(() => null);
+  use('db').then(db => {
+    if (!db) return;
+    P.db = db;
+    const local = store.get('captures', []);                     // send notes made before sync was on
+    local.forEach(c => db.collection('captures').doc(c.id).set(c).catch(() => {}));
+    if (local.length) store.set('captures', []);
+    Object.entries(store.get('overrides', {})).forEach(([slug, raw]) => db.doc('edits/' + slug).set({ raw, ts: Date.now() }).catch(() => {}));
+    db.collection('captures').orderBy('ts', 'desc').limit(300).onSnapshot(snap => {
+      captures = snap.docs.map(d => ({ ...d.data(), id: d.id })); refreshData();
+    }, () => toast('Inbox sync is offline right now'));
+    db.collection('edits').onSnapshot(snap => {
+      const o = {}; snap.docs.forEach(d => { const r = d.data().raw; if (typeof r === 'string') o[d.id] = r; });
+      overrides = o; store.set('overrides', o); refreshData();
+    }, () => {});
+    renderHello();
+  });
+  use('sample').then(s => { P.sample = s; refreshAskUI(); });
+  use('downloads').then(d => { P.dl = d; });
+  use('dictation').then(d => {
+    if (!d) return;
+    P.dict = d; const mic = $('#micBtn'); mic.hidden = false;
+    let baseText = '';
+    const join = (a, b) => (a && !/\s$/.test(a) ? a + ' ' : a) + b;
+    d.onPartial(({ text }) => { $('#capText').value = join(baseText, text); });
+    d.onFinal(({ text }) => { baseText = join(baseText, text); $('#capText').value = baseText; store.set('draft', baseText); updateSave(); });
+    d.onState(({ state }) => mic.classList.toggle('live', state === 'listening' || state === 'starting'));
+    mic.onclick = () => {
+      if (d.active()) { d.stop().catch(() => {}); return; }
+      baseText = $('#capText').value;
+      d.start().catch(e => { if (e && e.code === 'not_granted') { mic.hidden = true; P.dict = null; } else if (e && e.code !== 'dismissed') toast('Dictation is not available right now'); });
+    };
+  });
+}
+
+/* ================= app (PWA) ================= */
+let deferred = null;
+const ib = $('#install');
+if (ib) {
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; ib.style.display = 'grid'; });
+  ib.onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; ib.style.display = 'none'; };
+}
+if (!P.artifact && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+if (location.hash.length > 1) { const p = bySlug(decodeURIComponent(location.hash.slice(1))); if (p) setTimeout(() => openPage(p), 300); }
+})();
+</script>

@@ -10,5 +10,5 @@ At the end of each working session Claude writes a Record page: what was asked, 
 ## Weekly digest
 Every Sunday a generated page in Reviews summarises the week across all Records.
 
-## Needed
-Nothing new – just the habit in `CLAUDE.md`. A live in-app "summarise" button would need a small backend for the API key. Related: [[weekly-review]].
+## Live answers
+In the phone artifact, *Ask Claude* on Home answers questions and writes summaries from the notes, with links to the pages it used – no backend needed. The GitHub Pages version has no AI. Related: [[weekly-review]], [[phone-artifact]].
