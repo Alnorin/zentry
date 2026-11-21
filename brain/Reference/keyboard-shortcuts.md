@@ -13,7 +13,8 @@ updated: 2026-11-21
 - `Esc` – close / back to the galaxy
 
 ## Galaxy
-- Scroll or pinch – zoom
-- Drag – pan
+- Drag (one finger) – rotate the galaxy in 3D, with inertia
+- Shift-drag, right-drag or two fingers – pan
+- Scroll or pinch – zoom; horizontal scroll spins
 - `Space` – pause the motion
 - `0` – reset view

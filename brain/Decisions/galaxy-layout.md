@@ -14,3 +14,4 @@ The reference demo was beautiful but the positions meant nothing. Here a glance 
 - Brighter, bigger stars = ideas from pages updated recently.
 - Lines = `[[links]]` between pages.
 - Pulsing star = page with an open task.
+- Since v4 the galaxy is 3D: every group also has a depth, the whole cloud slowly turns, and dragging rotates it. It settles face-on while you read a page, so labels stay legible.
